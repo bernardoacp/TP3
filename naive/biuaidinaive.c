@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 // struct that contains the information about the recharging locations
 typedef struct {
@@ -102,35 +103,120 @@ void printmap(ptr_knn_t kvet, int kmax, ptr_addr_t rvet, int nrec, double tx, do
 	fclose(out);
 }
 
+void load_recharge_stations(const char* filename) 
+{
+	FILE* file = fopen(filename, "r");
+	if (file == NULL) {
+		fprintf(stderr, "Erro: nao foi possivel abrir o arquivo %s\n", filename);
+		exit(1);
+	}
+	char ch;
+
+	// count the number of lines in the file
+	while ((ch = fgetc(file)) != EOF) {
+        if (ch == '\n') {
+            nrecharge++;
+        }
+    }
+	nrecharge++;
+	
+	// allocate memory for the rechargevet vector
+	rechargevet = (ptr_addr_t) malloc(nrecharge*sizeof(addr_t));
+	if (rechargevet == NULL) {
+		fprintf(stderr, "Erro: nao foi possivel alocar memoria para o vetor de estacoes de recarga.\n");
+		exit(1);
+	}
+
+	// read the file and populate the rechargevet vector
+	rewind(file);
+	char buffer[1024];
+	int i = 0;
+	while (fgets(buffer, sizeof(buffer), file)) {
+		// remove newline character if present
+		buffer[strcspn(buffer, "\n")] = 0;
+
+		// parse the line
+		char* token = strtok(buffer, ",");
+		rechargevet[i].idend = strdup(token);
+		
+		token = strtok(NULL, ",");
+		rechargevet[i].id_logrado = atol(token);
+
+		token = strtok(NULL, ",");
+		rechargevet[i].sigla_tipo = strdup(token);
+
+		token = strtok(NULL, ",");
+		rechargevet[i].nome_logra = strdup(token);
+
+		token = strtok(NULL, ",");
+		rechargevet[i].numero_imo = atoi(token);
+
+		token = strtok(NULL, ",");
+		rechargevet[i].nome_bairr = strdup(token);
+
+		token = strtok(NULL, ",");
+		rechargevet[i].nome_regio = strdup(token);
+
+		token = strtok(NULL, ",");
+		rechargevet[i].cep = atoi(token);
+
+		token = strtok(NULL, ",");
+		rechargevet[i].x = atof(token);
+
+		token = strtok(NULL, ",");
+		rechargevet[i].y = atof(token);
+		
+		i++;
+	}
+	fclose(file);
+}
+
 int main(int argc, char** argv) {
 
-// count the number of recharge locations we have in rechargevet
-int numrecharge = 0;
-while(rechargevet[numrecharge].id_logrado != -1) numrecharge++;
+	// count the number of recharge locations we have in rechargevet
+	// int numrecharge = 0;
+	// while(rechargevet[numrecharge].id_logrado != -1) numrecharge++;
 
-// read the coordinates of the current point that needs recharging
-double tx = atof(argv[1]);
-double ty = atof(argv[2]);
+	// read the coordinates of the current point that needs recharging
+	double tx = atof(argv[1]);
+	double ty = atof(argv[2]);
 
-// create the vector of distances and populate it
-ptr_knn_t kvet = (ptr_knn_t) malloc(numrecharge*sizeof(knn_t));
-for (int i=0; i<numrecharge; i++) {
-	kvet[i].id = i;
-	kvet[i].dist = dist(tx, ty, rechargevet[i].x, rechargevet[i].y);
-}
+	/*
+	// create the vector of distances and populate it
+	ptr_knn_t kvet = (ptr_knn_t) malloc(numrecharge*sizeof(knn_t));
+	for (int i=0; i<numrecharge; i++) {
+		kvet[i].id = i;
+		kvet[i].dist = dist(tx, ty, rechargevet[i].x, rechargevet[i].y);
+	}
 
-// sort the vector of distances
-qsort(kvet,numrecharge, sizeof(knn_t), cmpknn);
+	// sort the vector of distances
+	qsort(kvet,numrecharge, sizeof(knn_t), cmpknn);
 
-// print the 10 nearest recharging locations
-int kmax = 10;
-for (int i=0; i<kmax; i++) {
-	printrecharge(kvet[i].id);
-	printf(" (%f)\n", kvet[i].dist);
-}
+	// print the 10 nearest recharging locations
+	int kmax = 10;
+	for (int i=0; i<kmax; i++) {
+		printrecharge(kvet[i].id);
+		printf(" (%f)\n", kvet[i].dist);
+	}
 
-printmap(kvet,kmax,rechargevet,numrecharge,tx,ty);
+	printmap(kvet,kmax,rechargevet,numrecharge,tx,ty);
 
-free(kvet);
-exit(0);
+	free(kvet);
+	exit(0);
+	}
+	*/
+	load_recharge_stations("estacoes.csv");
+	for (int i = 0; i < nrecharge; i++) {
+		printf("%s %ld %s %s %d %s %s %d %lf %lf\n",
+			   rechargevet[i].idend,
+			   rechargevet[i].id_logrado,
+			   rechargevet[i].sigla_tipo,
+			   rechargevet[i].nome_logra,
+			   rechargevet[i].numero_imo,
+			   rechargevet[i].nome_bairr,
+			   rechargevet[i].nome_regio,
+			   rechargevet[i].cep,
+			   rechargevet[i].x,
+			   rechargevet[i].y);
+	}
 }
