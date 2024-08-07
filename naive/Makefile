@@ -1,10 +1,10 @@
 all: biuaidinaive
-	./biuaidinaive 610167.846027439 7795602.43183451
+	./biuaidinaive
 	gnuplot out.gp
 	evince out.eps
 
 biuaidinaive: biuaidinaive.c
-	gcc -Wall -o biuaidinaive biuaidinaive.c -lm
+	gcc -Wall -o biuaidinaive biuaidinaive.c -lm -g
 
 clean:
 	rm -rf biuaidinaive out.eps out.gp *.gpdat
