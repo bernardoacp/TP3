@@ -2,6 +2,7 @@
 // Author: Wagner Meira Jr. 
 // Version history:
 //    1.0 - 21/07/2024
+//    1.1 - 07/08/2024
 //
 // Usage: 
 // biuaidinaive x y
@@ -29,6 +30,7 @@ typedef struct {
 	int cep;
 	double x;
 	double y;
+	int ativo;
 } addr_t, *ptr_addr_t;
 
 // struct that contain the distance information between the origin location and
@@ -66,41 +68,48 @@ void printrecharge(int pos){
 
 // print illustrative map using gnuplot
 void printmap(ptr_knn_t kvet, int kmax, ptr_addr_t rvet, int nrec, double tx, double ty) {
-	FILE * out;
+	FILE *out1, *out2;
 
 	// gnuplot script. to obtain the actual map, it is necessary to run:
 	// gnuplot out.gp
-	out = fopen("out.gp","wt");
-	fprintf(out,"set term postscript eps\n");
-	fprintf(out,"set output \"out.eps\"\n");
-	fprintf(out,"set size square\n");
-	fprintf(out,"set key bottom right\n");
-	fprintf(out,"set title \"BiUaiDi Recharging Stations\"\n");
-	fprintf(out,"set xlabel \"\"\n");
-	fprintf(out,"set ylabel \"\"\n");
-	fprintf(out,"unset xtics \n");
-	fprintf(out,"unset ytics \n");
-	fprintf(out,"plot \"origin.gpdat\" t \"Your location\" pt 4 ps 2, \"recharge.gpdat\" t \"\", \"suggested.gpdat\" t \"Nearest stations\" pt 7 ps 2\n");
-	fclose(out);
+	out1 = fopen("out.gp","wt");
+	fprintf(out1,"set term postscript eps\n");
+	fprintf(out1,"set output \"out.eps\"\n");
+	fprintf(out1,"set size square\n");
+	fprintf(out1,"set key bottom right\n");
+	fprintf(out1,"set title \"BiUaiDi Recharging Stations\"\n");
+	fprintf(out1,"set xlabel \"\"\n");
+	fprintf(out1,"set ylabel \"\"\n");
+	fprintf(out1,"unset xtics \n");
+	fprintf(out1,"unset ytics \n");
+	fprintf(out1,"plot \"origin.gpdat\" t \"Your location\" pt 4 ps 2, \"recharge.gpdat\" t \"\", \"suggested.gpdat\" t \"Nearest stations\" pt 7 ps 2, \"deactivated.gpdat\" t \"Deactivated stations\" pt 2 ps 1\n");
+	fclose(out1);
 
 	// origin point, just one pair of x, y coordinates
-	out = fopen("origin.gpdat","wt");
-	fprintf(out,"%f %f\n",tx, ty);
-	fclose(out);
+	out1 = fopen("origin.gpdat","wt");
+	fprintf(out1,"%f %f\n",tx, ty);
+	fclose(out1);
 
-	// all recharging locations
-	out = fopen("recharge.gpdat","wt");
+	// active recharging locations
+	out1 = fopen("recharge.gpdat","wt");
+	//  deactivated recharging locations
+    out2 = fopen("deactivated.gpdat","wt");
 	for (int i=0; i<nrec; i++) {
-		fprintf(out,"%f %f\n",rvet[i].x, rvet[i].y);
+		if (!rvet[i].ativo) {
+			fprintf(out2,"%f %f\n",rvet[i].x, rvet[i].y);
+			continue;
+		}
+		fprintf(out1,"%f %f\n",rvet[i].x, rvet[i].y);
 	}
-	fclose(out);
+	fclose(out1);
+	fclose(out2);
 
 	// the nearest recharging locations
-	out = fopen("suggested.gpdat","wt");
+	out1 = fopen("suggested.gpdat","wt");
 	for (int i=0; i<kmax; i++) {
-		fprintf(out,"%f %f\n",rvet[kvet[i].id].x, rvet[kvet[i].id].y);
+		fprintf(out1,"%f %f\n",rvet[kvet[i].id].x, rvet[kvet[i].id].y);
 	}
-	fclose(out);
+	fclose(out1);
 }
 
 void load_recharge_stations(const char* filename) 
@@ -164,58 +173,103 @@ void load_recharge_stations(const char* filename)
 
 		token = strtok(NULL, ",");
 		rechargevet[i].y = atof(token);
+
+		rechargevet[i].ativo = 1;
 		
 		i++;
 	}
 	fclose(file);
 }
 
-int main(int argc, char** argv) {
-
-	// count the number of recharge locations we have in rechargevet
-	// int numrecharge = 0;
-	// while(rechargevet[numrecharge].id_logrado != -1) numrecharge++;
-
-	// read the coordinates of the current point that needs recharging
-	double tx = atof(argv[1]);
-	double ty = atof(argv[2]);
-
-	/*
-	// create the vector of distances and populate it
-	ptr_knn_t kvet = (ptr_knn_t) malloc(numrecharge*sizeof(knn_t));
-	for (int i=0; i<numrecharge; i++) {
-		kvet[i].id = i;
-		kvet[i].dist = dist(tx, ty, rechargevet[i].x, rechargevet[i].y);
+void read_commands(const char* filename) 
+{
+	FILE* file = fopen(filename, "r");
+	if (file == NULL) {
+		fprintf(stderr, "Erro: nao foi possivel abrir o arquivo %s\n", filename);
+		exit(1);
 	}
 
-	// sort the vector of distances
-	qsort(kvet,numrecharge, sizeof(knn_t), cmpknn);
+	char buffer[1024];
+	while (fgets(buffer, sizeof(buffer), file)) {
+		// remove newline character if present
+		buffer[strcspn(buffer, "\n")] = 0;
 
-	// print the 10 nearest recharging locations
-	int kmax = 10;
-	for (int i=0; i<kmax; i++) {
-		printrecharge(kvet[i].id);
-		printf(" (%f)\n", kvet[i].dist);
+		char operation;
+		char id[20];
+		double x, y;
+		int n;
+		
+		switch (buffer[0]) {
+		case 'A':
+			// activate recharge station
+			sscanf(buffer, "%c %s", &operation, id);
+			for (int i = 0; i < nrecharge; i++) {
+				if (!strcmp(rechargevet[i].idend, id)) {
+					if (rechargevet[i].ativo) {
+						printf("Ponto de recarga %s já estava ativo.\n", id);
+					}
+					else {
+						rechargevet[i].ativo = 1;
+						printf("Ponto de recarga %s ativado.\n", id);
+					}
+					break;
+				}
+			}
+			break;
+		case 'D':
+			// deactivate recharge station
+			sscanf(buffer, "%c %s", &operation, id);
+			for (int i = 0; i < nrecharge; i++) {
+				if (!strcmp(rechargevet[i].idend, id)) {
+					if (!rechargevet[i].ativo) {
+						printf("Ponto de recarga %s já estava desativado.\n", id);
+					}
+					else {
+						rechargevet[i].ativo = 0;
+						printf("Ponto de recarga %s desativado.\n", id);
+					}
+					break;
+				}
+			}
+			break;
+		case 'C':
+			// find n closest recharge stations
+			sscanf(buffer, "%c %lf %lf %d", &operation, &x, &y, &n);
+			
+			// create the vector of distances and populate it
+			ptr_knn_t kvet = (ptr_knn_t) malloc(nrecharge*sizeof(knn_t));
+			int kvet_size = 0; // track the number of active stations
+			
+			for (int i = 0; i < nrecharge; i++) {
+				if (!rechargevet[i].ativo) {
+					continue;
+				}
+				kvet[kvet_size].id = i;
+				kvet[kvet_size].dist = dist(x, y, rechargevet[i].x, rechargevet[i].y);
+				kvet_size++;
+			}
+
+			// sort the vector of distances
+			qsort(kvet, kvet_size, sizeof(knn_t), cmpknn);
+			
+			// print the n nearest recharging locations
+			for (int i = 0; i < n; i++) {
+				printrecharge(kvet[i].id);
+				printf(" (%f)\n", kvet[i].dist);
+			}
+			printmap(kvet,n,rechargevet,nrecharge,x,y);
+			free(kvet);
+			break;
+		default:
+			printf("Comando inválido.\n");
+			break;
+		}
 	}
+}
 
-	printmap(kvet,kmax,rechargevet,numrecharge,tx,ty);
-
-	free(kvet);
-	exit(0);
-	}
-	*/
+int main(int argc, char** argv) 
+{
 	load_recharge_stations("estacoes.csv");
-	for (int i = 0; i < nrecharge; i++) {
-		printf("%s %ld %s %s %d %s %s %d %lf %lf\n",
-			   rechargevet[i].idend,
-			   rechargevet[i].id_logrado,
-			   rechargevet[i].sigla_tipo,
-			   rechargevet[i].nome_logra,
-			   rechargevet[i].numero_imo,
-			   rechargevet[i].nome_bairr,
-			   rechargevet[i].nome_regio,
-			   rechargevet[i].cep,
-			   rechargevet[i].x,
-			   rechargevet[i].y);
-	}
+	read_commands("comandos.txt");
+	return 0;
 }
