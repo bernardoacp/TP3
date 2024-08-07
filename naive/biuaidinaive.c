@@ -118,7 +118,6 @@ void load_recharge_stations(const char* filename)
             nrecharge++;
         }
     }
-	nrecharge++;
 	
 	// allocate memory for the rechargevet vector
 	rechargevet = (ptr_addr_t) malloc(nrecharge*sizeof(addr_t));
