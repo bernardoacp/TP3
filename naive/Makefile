@@ -1,10 +1,10 @@
 all: biuaidinaive
-	./biuaidinaive
-	gnuplot out.gp
-	evince out.eps
+	./bin/biuaidinaive
+	gnuplot ./plot/out.gp
+	evince ./plot/out.eps
 
-biuaidinaive: biuaidinaive.c
-	gcc -Wall -o biuaidinaive biuaidinaive.c -lm -g
+biuaidinaive: ./src/biuaidinaive.c
+	gcc -Wall -o ./bin/biuaidinaive ./src/biuaidinaive.c -lm -g
 
 clean:
-	rm -rf biuaidinaive out.eps out.gp *.gpdat
+	rm -rf ./bin/biuaidinaive ./plot/out.eps ./plot/out.gp ./plot/*.gpdat

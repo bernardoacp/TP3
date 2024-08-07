@@ -72,9 +72,9 @@ void printmap(ptr_knn_t kvet, int kmax, ptr_addr_t rvet, int nrec, double tx, do
 
 	// gnuplot script. to obtain the actual map, it is necessary to run:
 	// gnuplot out.gp
-	out1 = fopen("out.gp","wt");
+	out1 = fopen("plot/out.gp","wt");
 	fprintf(out1,"set term postscript eps\n");
-	fprintf(out1,"set output \"out.eps\"\n");
+	fprintf(out1,"set output \"plot/out.eps\"\n");
 	fprintf(out1,"set size square\n");
 	fprintf(out1,"set key bottom right\n");
 	fprintf(out1,"set title \"BiUaiDi Recharging Stations\"\n");
@@ -82,18 +82,18 @@ void printmap(ptr_knn_t kvet, int kmax, ptr_addr_t rvet, int nrec, double tx, do
 	fprintf(out1,"set ylabel \"\"\n");
 	fprintf(out1,"unset xtics \n");
 	fprintf(out1,"unset ytics \n");
-	fprintf(out1,"plot \"origin.gpdat\" t \"Your location\" pt 4 ps 2, \"recharge.gpdat\" t \"\", \"suggested.gpdat\" t \"Nearest stations\" pt 7 ps 2, \"deactivated.gpdat\" t \"Deactivated stations\" pt 2 ps 1\n");
+	fprintf(out1,"plot \"plot/origin.gpdat\" t \"Your location\" pt 4 ps 2, \"plot/recharge.gpdat\" t \"\", \"plot/suggested.gpdat\" t \"Nearest stations\" pt 7 ps 2, \"plot/deactivated.gpdat\" t \"Deactivated stations\" pt 2 ps 1\n");
 	fclose(out1);
 
 	// origin point, just one pair of x, y coordinates
-	out1 = fopen("origin.gpdat","wt");
+	out1 = fopen("plot/origin.gpdat","wt");
 	fprintf(out1,"%f %f\n",tx, ty);
 	fclose(out1);
 
 	// active recharging locations
-	out1 = fopen("recharge.gpdat","wt");
+	out1 = fopen("plot/recharge.gpdat","wt");
 	//  deactivated recharging locations
-    out2 = fopen("deactivated.gpdat","wt");
+    out2 = fopen("plot/deactivated.gpdat","wt");
 	for (int i=0; i<nrec; i++) {
 		if (!rvet[i].ativo) {
 			fprintf(out2,"%f %f\n",rvet[i].x, rvet[i].y);
@@ -105,7 +105,7 @@ void printmap(ptr_knn_t kvet, int kmax, ptr_addr_t rvet, int nrec, double tx, do
 	fclose(out2);
 
 	// the nearest recharging locations
-	out1 = fopen("suggested.gpdat","wt");
+	out1 = fopen("plot/suggested.gpdat","wt");
 	for (int i=0; i<kmax; i++) {
 		fprintf(out1,"%f %f\n",rvet[kvet[i].id].x, rvet[kvet[i].id].y);
 	}
@@ -269,7 +269,7 @@ void read_commands(const char* filename)
 
 int main(int argc, char** argv) 
 {
-	load_recharge_stations("estacoes.csv");
-	read_commands("comandos.txt");
+	load_recharge_stations("./files/estacoes.csv");
+	read_commands("./files/comandos.txt");
 	return 0;
 }
