@@ -57,5 +57,4 @@ void node_reset(QuadTreeNode* pn);
 void node_copy(QuadTreeNode* dst, QuadTreeNode* src);
 void node_destroy();
 
-
 #endif
