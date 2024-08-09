@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 
 // struct that contains the information about the recharging locations
 typedef struct {

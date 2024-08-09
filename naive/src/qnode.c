@@ -1,4 +1,4 @@
-#include "qnode.h"
+#include "../include/qnode.h"
 
 // encapsulated variables keeping the vector of nodes
 QuadTreeNode* nodevet = NULL;
@@ -126,7 +126,7 @@ void node_dump(int ad, int level) {
 	// insert level spaces for sake of indentation
 	for (int i = 0; i < level; i++) printf(" "); 
 	// print the node info
-	printf("(%s) key %ld nw %ld ne %ld sw %ld se %ld subdivided %d\n",
+	printf("(%s) key %ld nw %ld ne %ld sw %ld se %dsubdivided\n",
             nodevet[ad].key.idend,
             nodevet[ad].nw, nodevet[ad].ne, nodevet[ad].sw, nodevet[ad].se,
             nodevet[ad].subdivided);
@@ -139,7 +139,7 @@ void node_dumpvet() {
 				nodevetsz, nodesallocated, firstavail);
 	// print each vector entry
 	for (int i = 0; i<nodevetsz; i++) {
-		printf("(%s) key %ld nw %ld ne %ld sw %ld se %ld subdivided %d\n",
+		printf("(%s) key %ld nw %ld ne %ld sw %ld se %dsubdivided\n",
             nodevet[i].key.idend,
             nodevet[i].nw, nodevet[i].ne, nodevet[i].sw, nodevet[i].se,
             nodevet[i].subdivided);
