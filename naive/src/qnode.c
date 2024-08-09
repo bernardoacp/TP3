@@ -2,6 +2,7 @@
 
 // encapsulated variables keeping the vector of nodes
 QuadTreeNode* nodevet = NULL;
+Boundary boundary = INVALIDBOUNDARY;
 long nodevetsz = 0;
 long nodesallocated = 0;
 long firstavail = INVALIDADDR;
@@ -12,9 +13,9 @@ static bool is_invalid_key(nodekey_t key) {
 }
 
 // reset node, removing any previous usage information
-void node_reset(QuadTreeNode* pn) { 
-	pn->boundary = INVALIDBOUNDARY;
-    pn->key = INVALIDKEY; 
+void node_reset(QuadTreeNode* pn) {
+	pn->boundary = boundary;
+	pn->key = INVALIDKEY;
 	pn->ne = INVALIDADDR;
     pn->nw = INVALIDADDR;
     pn->se = INVALIDADDR;
@@ -34,13 +35,15 @@ void node_copy(QuadTreeNode* dst, QuadTreeNode* src) {
 }
 
 // initialize a vectorized binary tree that will contain at most numnodes
-long node_initialize(long numnodes) {
+long node_initialize(long numnodes, Boundary qt_boundary) {
 	// allocate node vet
 	nodevet = (QuadTreeNode*) malloc(numnodes*sizeof(QuadTreeNode));
 	if (nodevet == NULL) {
 		fprintf(stderr,"node_initialize: could not allocate nodevet\n");
 		return 0;
 	}
+	// initialize boundary
+	boundary = qt_boundary;
 	// initialize nodevetsz;
 	nodevetsz = numnodes;
 	// create the chain of available nodes as a linked list

@@ -46,7 +46,7 @@ typedef struct {
     bool subdivided;
 } QuadTreeNode;
 
-long node_initialize(long numnodes);
+long node_initialize(long numnodes, Boundary qt_boundary);
 nodeaddr_t node_create(QuadTreeNode* pn);
 void node_delete(nodeaddr_t ad);
 void node_get(nodeaddr_t ad, QuadTreeNode* pn);
