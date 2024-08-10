@@ -24,7 +24,37 @@ void quadtree_destroy() {
 	root = INVALIDADDR;
 }
 
-void subdivide(addr_t ad)
+void subdivide(nodeaddr_t ad)
 {
-	
+	QuadTreeNode curr;
+	node_get(ad, &curr);
+
+	double x_min = curr.boundary.x_min;
+	double x_max = curr.boundary.x_max;
+	double y_min = curr.boundary.y_min;
+	double y_max = curr.boundary.y_max;
+
+	Boundary nw = (Boundary) {x_min, (x_min+x_max)/2, (y_min+y_max)/2, y_max};
+	Boundary ne = (Boundary) {(x_min+x_max)/2, x_max, (y_min+y_max)/2, y_max};
+	Boundary sw = (Boundary) {x_min, (x_min+x_max)/2, y_min, (y_min+y_max)/2};
+	Boundary se = (Boundary) {(x_min+x_max)/2, x_max, y_min, (y_min+y_max)/2};
+
+	QuadTreeNode aux;
+	node_reset(&aux);
+	aux.boundary = nw;
+	curr.nw = node_create(&aux);
+
+	node_reset(&aux);
+	aux.boundary = ne;
+	curr.ne = node_create(&aux);
+
+	node_reset(&aux);
+	aux.boundary = sw;
+	curr.sw = node_create(&aux);
+
+	node_reset(&aux);
+	aux.boundary = se;
+	curr.se = node_create(&aux);
+
+	node_put(ad, &curr);
 }
