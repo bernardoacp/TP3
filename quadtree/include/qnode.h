@@ -14,10 +14,6 @@ typedef struct {
 	double y;
 } Item;
 
-#define INVALIDKEY (Item) {-1, -1}
-#define INVALIDBOUNDARY (Boundary) {0, 0, 0, 0}
-#define INVALIDADDR -2
-
 // there are no pointers in a vectorized implementation, just vector indices
 typedef Item nodekey_t;
 typedef long nodeaddr_t;
@@ -31,6 +27,11 @@ typedef struct {
     nodeaddr_t se;
     bool subdivided;
 } QuadTreeNode;
+
+#define INVALIDADDR -2
+#define INVALIDKEY (Item) {-1, -1}
+#define INVALIDBOUNDARY (Boundary) {0, 0, 0, 0}
+#define INVALIDNODE {INVALIDBOUNDARY, INVALIDKEY, INVALIDADDR, INVALIDADDR, INVALIDADDR, INVALIDADDR, false}
 
 long node_initialize(long numnodes, Boundary qt_boundary);
 nodeaddr_t node_create(QuadTreeNode* pn);

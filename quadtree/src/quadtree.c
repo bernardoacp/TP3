@@ -1,4 +1,4 @@
-#include "../include/quadtree.h"
+#include "quadtree.h"
 
 // even the quad tree root is encapsulated
 nodeaddr_t root = INVALIDADDR;

@@ -1,4 +1,4 @@
-#include "../include/qnode.h"
+#include "qnode.h"
 
 // encapsulated variables keeping the vector of nodes
 QuadTreeNode* nodevet = NULL;
@@ -7,9 +7,9 @@ long nodevetsz = 0;
 long nodesallocated = 0;
 long firstavail = INVALIDADDR;
 
-static bool is_invalid_key(nodekey_t key) {
-    nodekey_t invalid_key = INVALIDKEY;
-    return memcmp(&key, &invalid_key, sizeof(Item)) == 0;
+static bool is_invalid_node(QuadTreeNode* node) {
+    QuadTreeNode invalid_node = INVALIDNODE;
+    return memcmp(node, &invalid_node, sizeof(QuadTreeNode)) == 0;
 }
 
 // reset node, removing any previous usage information
@@ -82,7 +82,7 @@ void node_delete(nodeaddr_t ad) {
 		fprintf(stderr,"node_delete: address out of range\n");
 		return;
 	}
-	if (is_invalid_key(nodevet[ad].key)) {
+	if (is_invalid_node(&(nodevet[ad]))) {
 		fprintf(stderr,"node_delete: node already deleted\n");
 	}
 	// just reset and add to the front of available list 
@@ -100,7 +100,7 @@ void node_get(nodeaddr_t ad, QuadTreeNode* pn) {
 		pn->key = INVALIDKEY;
 		return;
 	}
-	if (is_invalid_key(nodevet[ad].key)) {
+	if (is_invalid_node(&(nodevet[ad]))) {
 		fprintf(stderr,"node_get: node is invalid\n");
 	}
 	node_copy(pn,&(nodevet[ad]));
