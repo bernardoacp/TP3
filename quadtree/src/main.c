@@ -20,4 +20,9 @@ int main(void)
     }
     fclose(file);
     export_quadtree("quadtree_data.txt");
+
+    printf("%ld\n", quadtree_search((Item) {97.000000, 71.000000}));
+    printf("%ld\n", quadtree_search((Item) {1.000000, 1.000000}));
+    printf("%ld\n", quadtree_search((Item) {83.000000, 86.000000}));
+
 }

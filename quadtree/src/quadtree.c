@@ -4,6 +4,7 @@
 nodeaddr_t root = INVALIDADDR;
 
 static void quadtree_insert_rec(nodekey_t key, nodeaddr_t curr);
+static nodeaddr_t quadtree_search_rec(nodekey_t key, nodeaddr_t curr);
 
 // Create a binary tree with at most numnodes nodes
 void quadtree_create(long numnodes, Boundary qt_boundary) {
@@ -99,7 +100,51 @@ void quadtree_insert(nodekey_t key)
 	quadtree_insert_rec(key, root);
 }
 
-void quadtree_search(nodekey_t key);
+static nodeaddr_t quadtree_search_rec(nodekey_t key, nodeaddr_t curr)
+{
+	QuadTreeNode curr_node;
+	node_get(curr, &curr_node);
+
+	if (curr_node.key.x == key.x && curr_node.key.y == key.y) {
+		return curr;
+	}
+
+	if (!curr_node.subdivided) {
+		return -1;
+	}
+
+	QuadTreeNode aux;
+	node_get(curr_node.nw, &aux);
+	if (boundary_contains(&aux.boundary, key.x, key.y)) {
+		return quadtree_search_rec(key, curr_node.nw);
+	}
+
+	node_get(curr_node.ne, &aux);
+	if (boundary_contains(&aux.boundary, key.x, key.y)) {
+		return quadtree_search_rec(key, curr_node.ne);
+	}
+
+	node_get(curr_node.sw, &aux);
+	if (boundary_contains(&aux.boundary, key.x, key.y)) {
+		return quadtree_search_rec(key, curr_node.sw);
+	}
+
+	node_get(curr_node.se, &aux);
+	if (boundary_contains(&aux.boundary, key.x, key.y)) {
+		return quadtree_search_rec(key, curr_node.se);
+	}
+}
+
+nodeaddr_t quadtree_search(nodekey_t key)
+{
+	// check whether the tree is null
+	if (root == INVALIDADDR) {
+		fprintf(stderr,"quadtree_search: tree empty\n");
+		return INVALIDADDR;
+	}
+	// call the recursive function
+	return quadtree_search_rec(key, root);
+}
 
 // Function to recursively export the QuadTree nodes
 void export_node(nodeaddr_t addr, FILE* file) {
