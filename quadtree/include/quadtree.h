@@ -6,6 +6,7 @@
 #include <math.h>
 #include "qnode.h"
 
+void subdivide(nodeaddr_t ad);
 void quadtree_create(long numnodes, Boundary boundary);
 nodeaddr_t quadtree_search(nodekey_t k, QuadTreeNode* pn);
 nodeaddr_t quadtree_insert(nodekey_t k, QuadTreeNode* pn);

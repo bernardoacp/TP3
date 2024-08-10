@@ -37,7 +37,7 @@ void node_copy(QuadTreeNode* dst, QuadTreeNode* src) {
 // initialize a vectorized binary tree that will contain at most numnodes
 long node_initialize(long numnodes, Boundary qt_boundary) {
 	// allocate node vet
-	nodevet = (QuadTreeNode*) malloc(numnodes*sizeof(QuadTreeNode));
+	nodevet = (QuadTreeNode*) malloc(numnodes * sizeof(QuadTreeNode));
 	if (nodevet == NULL) {
 		fprintf(stderr,"node_initialize: could not allocate nodevet\n");
 		return 0;
@@ -52,7 +52,7 @@ long node_initialize(long numnodes, Boundary qt_boundary) {
 		nodevet[i].nw = (nodeaddr_t) i + 1;
 	}
 	// last node in the chain
-	nodevet[nodevetsz-1].nw = INVALIDADDR;
+	nodevet[nodevetsz - 1].nw = INVALIDADDR;
 	// node 0 is the first avail
 	firstavail = (nodeaddr_t) 0;
 	return numnodes;
@@ -71,7 +71,7 @@ nodeaddr_t node_create(QuadTreeNode* pn) {
 	ret = firstavail;
 	firstavail = nodevet[ret].nw;
 	nodesallocated++;
-	node_copy(&(nodevet[ret]),pn);
+	node_copy(&(nodevet[ret]), pn);
 	return ret;
 }
 

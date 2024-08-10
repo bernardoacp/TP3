@@ -9,18 +9,9 @@
 
 // struct that contains the information about the recharging locations
 typedef struct {
-	char* idend;
-	long id_logrado;
-	char* sigla_tipo;
-	char* nome_logra;
-	int numero_imo;
-	char* nome_bairr;
-	char* nome_regio;
-	int cep;
 	double x;
 	double y;
-	int ativo;
-} addr_t, *ptr_addr_t;
+} Item;
 
 typedef struct {
     int x_min;
@@ -34,7 +25,7 @@ typedef struct {
 #define INVALIDADDR -2
 
 // there are no pointers in a vectorized implementation, just vector indices
-typedef addr_t nodekey_t;
+typedef Item nodekey_t;
 typedef long nodeaddr_t;
 
 typedef struct {
