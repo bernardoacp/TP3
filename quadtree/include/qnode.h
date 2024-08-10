@@ -6,19 +6,13 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include "boundary.h"
 
 // struct that contains the information about the recharging locations
 typedef struct {
 	double x;
 	double y;
 } Item;
-
-typedef struct {
-    int x_min;
-    int x_max;
-    int y_min;
-    int y_max;
-} Boundary;
 
 #define INVALIDKEY (Item) {-1, -1}
 #define INVALIDBOUNDARY (Boundary) {0, 0, 0, 0}

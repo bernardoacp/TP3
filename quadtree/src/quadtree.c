@@ -58,3 +58,8 @@ void subdivide(nodeaddr_t ad)
 
 	node_put(ad, &curr);
 }
+
+void quadtree_insert(nodekey_t key)
+{
+	
+}
