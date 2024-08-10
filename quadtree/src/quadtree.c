@@ -68,8 +68,10 @@ static void quadtree_insert_rec(nodekey_t key, nodeaddr_t curr)
 		return;
 	}
 
-	subdivide(curr);
-	node_get(curr, &curr_node);
+	if (!curr_node.subdivided) {
+		subdivide(curr);
+		node_get(curr, &curr_node);
+	}
 
 	quadtree_insert_rec(key, curr_node.nw);
 	quadtree_insert_rec(key, curr_node.ne);
@@ -88,4 +90,35 @@ void quadtree_insert(nodekey_t key)
 		return;
 	}
 	quadtree_insert_rec(key, root);
+}
+
+// Function to recursively export the QuadTree nodes
+void export_node(nodeaddr_t addr, FILE* file) {
+    if (addr == INVALIDADDR) return;
+
+    QuadTreeNode node;
+    node_get(addr, &node);
+
+    // Write the boundary of the current node
+    fprintf(file, "%f %f %f %f\n", node.boundary.x_min, node.boundary.x_max, node.boundary.y_min, node.boundary.y_max);
+
+    // Recursively export child nodes
+    export_node(node.nw, file);
+    export_node(node.ne, file);
+    export_node(node.sw, file);
+    export_node(node.se, file);
+}
+
+// Function to export the QuadTree data to a file
+void export_quadtree(const char* filename) {
+    FILE* file = fopen(filename, "w");
+    if (!file) {
+        fprintf(stderr, "Could not open file for writing\n");
+        return;
+    }
+
+    // Start exporting from the root
+    export_node(root, file);
+
+    fclose(file);
 }

@@ -31,7 +31,6 @@ typedef struct {
 #define INVALIDADDR -2
 #define INVALIDKEY (Item) {-1, -1}
 #define INVALIDBOUNDARY (Boundary) {0, 0, 0, 0}
-#define INVALIDNODE {INVALIDBOUNDARY, INVALIDKEY, INVALIDADDR, INVALIDADDR, INVALIDADDR, INVALIDADDR, false}
 
 long node_initialize(long numnodes, Boundary qt_boundary);
 nodeaddr_t node_create(QuadTreeNode* pn);

@@ -7,6 +7,8 @@ long nodevetsz = 0;
 long nodesallocated = 0;
 long firstavail = INVALIDADDR;
 
+#define INVALIDNODE {boundary, INVALIDKEY, INVALIDADDR, INVALIDADDR, INVALIDADDR, INVALIDADDR, false}
+
 static bool is_invalid_node(QuadTreeNode* node) {
     QuadTreeNode invalid_node = INVALIDNODE;
     return memcmp(node, &invalid_node, sizeof(QuadTreeNode)) == 0;
