@@ -10,8 +10,8 @@ int main(void)
         return 1;
     }
     
-    quadtree_create(50, (Boundary){0, 100, 0, 100});
-    for (int i = 0; i < 1000; i++)
+    quadtree_create(100, (Boundary){0, 100, 0, 100});
+    for (int i = 0; i < 500; i++)
     {
         double x = rand() % 100;
         double y = rand() % 100;
@@ -24,5 +24,4 @@ int main(void)
     printf("%ld\n", quadtree_search((Item) {97.000000, 71.000000}));
     printf("%ld\n", quadtree_search((Item) {1.000000, 1.000000}));
     printf("%ld\n", quadtree_search((Item) {83.000000, 86.000000}));
-
 }
