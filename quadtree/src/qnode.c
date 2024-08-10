@@ -60,14 +60,32 @@ long node_initialize(long numnodes, Boundary qt_boundary) {
 	return numnodes;
 }
 
+void reallocate_node_array() {
+    int new_size = nodevetsz * 2;
+    QuadTreeNode* new_nodevet = realloc(nodevet, new_size * sizeof(QuadTreeNode));
+    if (new_nodevet == NULL) {
+        fprintf(stderr, "reallocate_node_array: could not reallocate node array\n");
+        exit(EXIT_FAILURE);
+    }
+    nodevet = new_nodevet;
+
+    // Initialize the new nodes and add them to the available list
+    for (int i = nodevetsz; i < new_size; i++) {
+        node_reset(&(nodevet[i]));
+		nodevet[i].nw = (nodeaddr_t) i + 1;
+    }
+	nodevet[new_size - 1].nw = INVALIDADDR;
+	// node 0 is the first avail
+	firstavail = (nodeaddr_t) nodevetsz;
+    nodevetsz = new_size;
+}
+
 // create node from pn
 nodeaddr_t node_create(QuadTreeNode* pn) {
 	nodeaddr_t ret;
 	// check whether node vector is full
 	if (nodesallocated == nodevetsz) {
-		fprintf(stderr,"node_create: could not create node\n");
-		node_reset(pn);
-		return INVALIDADDR;
+		reallocate_node_array();
 	}
 	// remove a node from the avail chain, update the controls and copy pn to it
 	ret = firstavail;
