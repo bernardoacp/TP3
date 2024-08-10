@@ -20,7 +20,7 @@ typedef struct {
     int y_max;
 } Boundary;
 
-#define INVALIDKEY (addr_t) {NULL, -1, NULL, NULL, -1, NULL, NULL, -1, -1, -1, -1}
+#define INVALIDKEY (Item) {-1, -1}
 #define INVALIDBOUNDARY (Boundary) {0, 0, 0, 0}
 #define INVALIDADDR -2
 
