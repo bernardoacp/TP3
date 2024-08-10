@@ -4,11 +4,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include "boundary.h"
 #include "qnode.h"
 
 void quadtree_create(long numnodes, Boundary boundary);
 nodeaddr_t quadtree_search(nodekey_t k, QuadTreeNode* pn);
-nodeaddr_t quadtree_insert(nodekey_t k, QuadTreeNode* pn);
+void quadtree_insert(nodekey_t k);
 void quadtree_subdivide(nodeaddr_t ad);
 void quadtree_remove(nodekey_t k, QuadTreeNode* pn);
 void quadtree_dump();

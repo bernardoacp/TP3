@@ -3,13 +3,6 @@
 // even the quad tree root is encapsulated
 nodeaddr_t root = INVALIDADDR;
 
-// private functions
-// nodeaddr_t quadtree_pred_rec(nodeaddr_t curr, QuadTreeNode* pn, QuadTreeNode* ppn, nodeaddr_t* ppa);
-// nodeaddr_t quadtree_pred(nodeaddr_t curr, QuadTreeNode* pn, QuadTreeNode* ppn, nodeaddr_t* ppa);
-nodeaddr_t quadtree_search_rec(nodekey_t k, nodeaddr_t curr, QuadTreeNode* p);
-nodeaddr_t quadtree_insert_rec(nodekey_t k, nodeaddr_t curr, QuadTreeNode* p);
-// int quadtree_remove_rec(nodekey_t k, nodeaddr_t curr, QuadTreeNode* p, nodeaddr_t* pna);
-
 // Create a binary tree with at most numnodes nodes
 void quadtree_create(long numnodes, Boundary qt_boundary) {
 	// we should create and initialize the vector that will contain the tree
@@ -56,10 +49,43 @@ void subdivide(nodeaddr_t ad)
 	aux.boundary = se;
 	curr.se = node_create(&aux);
 
+	curr.subdivided = true;
 	node_put(ad, &curr);
+}
+
+static void quadtree_insert_rec(nodekey_t key, nodeaddr_t curr)
+{
+	QuadTreeNode curr_node;
+	node_get(curr, &curr_node);
+
+	if (!boundary_contains(&curr_node.boundary, key.x, key.y)) {
+		return;
+	}
+
+	if (curr_node.key.x == -1 && !curr_node.subdivided) {
+		curr_node.key = key;
+		node_put(curr, &curr_node);
+		return;
+	}
+
+	subdivide(curr);
+	node_get(curr, &curr_node);
+
+	quadtree_insert_rec(key, curr_node.nw);
+	quadtree_insert_rec(key, curr_node.ne);
+	quadtree_insert_rec(key, curr_node.sw);
+	quadtree_insert_rec(key, curr_node.se);
 }
 
 void quadtree_insert(nodekey_t key)
 {
-	
+	QuadTreeNode aux;
+	node_reset(&aux);
+	aux.key = key;
+	if (root == INVALIDADDR) {
+		root = node_create(&aux);
+		node_put(root, &aux);
+		return;
+	}
+	quadtree_insert_rec(key, root);
 }

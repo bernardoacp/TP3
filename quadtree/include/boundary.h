@@ -1,3 +1,6 @@
+#ifndef BOUNDARY_H
+#define BOUNDARY_H
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -11,3 +14,5 @@ typedef struct {
 } Boundary;
 
 bool boundary_contains(Boundary* bd, double x, double y); 
+
+#endif

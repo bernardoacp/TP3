@@ -126,7 +126,7 @@ void node_dump(int ad, int level) {
 	// insert level spaces for sake of indentation
 	for (int i = 0; i < level; i++) printf(" "); 
 	// print the node info
-	printf("(%d %d) key %ld nw %ld ne %ld sw %ld se %dsubdivided\n",
+	printf("(%f %f) key %ld nw %ld ne %ld sw %ld se %dsubdivided\n",
             nodevet[ad].key.x, nodevet[ad].key.y,
             nodevet[ad].nw, nodevet[ad].ne, nodevet[ad].sw, nodevet[ad].se,
             nodevet[ad].subdivided);
@@ -139,7 +139,7 @@ void node_dumpvet() {
 				nodevetsz, nodesallocated, firstavail);
 	// print each vector entry
 	for (int i = 0; i<nodevetsz; i++) {
-		printf("(%d %d) key %ld nw %ld ne %ld sw %ld se %dsubdivided\n",
+		printf("(%f %f) key %ld nw %ld ne %ld sw %ld se %dsubdivided\n",
             nodevet[i].key.x, nodevet[i].key.y,
             nodevet[i].nw, nodevet[i].ne, nodevet[i].sw, nodevet[i].se,
             nodevet[i].subdivided);
