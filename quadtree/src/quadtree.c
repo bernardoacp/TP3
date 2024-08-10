@@ -3,6 +3,8 @@
 // even the quad tree root is encapsulated
 nodeaddr_t root = INVALIDADDR;
 
+static void quadtree_insert_rec(nodekey_t key, nodeaddr_t curr);
+
 // Create a binary tree with at most numnodes nodes
 void quadtree_create(long numnodes, Boundary qt_boundary) {
 	// we should create and initialize the vector that will contain the tree
@@ -31,9 +33,10 @@ void subdivide(nodeaddr_t ad)
 	Boundary ne = (Boundary) {(x_min+x_max)/2, x_max, (y_min+y_max)/2, y_max};
 	Boundary sw = (Boundary) {x_min, (x_min+x_max)/2, y_min, (y_min+y_max)/2};
 	Boundary se = (Boundary) {(x_min+x_max)/2, x_max, y_min, (y_min+y_max)/2};
-
+	
 	QuadTreeNode aux;
 	node_reset(&aux);
+
 	aux.boundary = nw;
 	curr.nw = node_create(&aux);
 
@@ -49,8 +52,12 @@ void subdivide(nodeaddr_t ad)
 	aux.boundary = se;
 	curr.se = node_create(&aux);
 
+	//nodekey_t key = curr.key;
+	//curr.key = INVALIDKEY;
 	curr.subdivided = true;
 	node_put(ad, &curr);
+
+	//quadtree_insert_rec(key, ad);
 }
 
 static void quadtree_insert_rec(nodekey_t key, nodeaddr_t curr)
@@ -91,6 +98,8 @@ void quadtree_insert(nodekey_t key)
 	}
 	quadtree_insert_rec(key, root);
 }
+
+void quadtree_search(nodekey_t key);
 
 // Function to recursively export the QuadTree nodes
 void export_node(nodeaddr_t addr, FILE* file) {

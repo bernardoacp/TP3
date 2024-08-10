@@ -10,8 +10,8 @@ int main(void)
         return 1;
     }
     
-    quadtree_create(1000, (Boundary){0, 100, 0, 100});
-    for (int i = 0; i < 500; i++)
+    quadtree_create(500, (Boundary){0, 100, 0, 100});
+    for (int i = 0; i < 100; i++)
     {
         double x = rand() % 100;
         double y = rand() % 100;
