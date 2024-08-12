@@ -25,7 +25,6 @@ typedef struct {
     nodeaddr_t ne;
     nodeaddr_t sw;
     nodeaddr_t se;
-    bool subdivided;
 } QuadTreeNode;
 
 #define INVALIDADDR -2

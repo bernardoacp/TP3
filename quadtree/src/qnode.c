@@ -7,7 +7,7 @@ long nodevetsz = 0;
 long nodesallocated = 0;
 long firstavail = INVALIDADDR;
 
-#define INVALIDNODE {boundary, INVALIDKEY, INVALIDADDR, INVALIDADDR, INVALIDADDR, INVALIDADDR, false}
+#define INVALIDNODE {boundary, INVALIDKEY, INVALIDADDR, INVALIDADDR, INVALIDADDR, INVALIDADDR}
 
 static bool is_invalid_node(QuadTreeNode* node) {
     QuadTreeNode invalid_node = INVALIDNODE;
@@ -22,7 +22,6 @@ void node_reset(QuadTreeNode* pn) {
     pn->nw = INVALIDADDR;
     pn->se = INVALIDADDR;
     pn->sw = INVALIDADDR;
-    pn->subdivided = false;
 }
 
 // copy contents of node src to node dst
@@ -33,7 +32,6 @@ void node_copy(QuadTreeNode* dst, QuadTreeNode* src) {
     dst->ne = src->ne;
     dst->sw = src->sw;
     dst->se = src->se;
-    dst->subdivided = src->subdivided;
 }
 
 // initialize a vectorized binary tree that will contain at most numnodes
@@ -146,10 +144,9 @@ void node_dump(int ad, int level) {
 	// insert level spaces for sake of indentation
 	for (int i = 0; i < level; i++) printf(" "); 
 	// print the node info
-	printf("(%f %f) key %ld nw %ld ne %ld sw %ld se %dsubdivided\n",
+	printf("(%f %f) key %ld nw %ld ne %ld sw %ld se\n",
             nodevet[ad].key.x, nodevet[ad].key.y,
-            nodevet[ad].nw, nodevet[ad].ne, nodevet[ad].sw, nodevet[ad].se,
-            nodevet[ad].subdivided);
+            nodevet[ad].nw, nodevet[ad].ne, nodevet[ad].sw, nodevet[ad].se);
 }
 
 // dump the whole vector
@@ -159,10 +156,9 @@ void node_dumpvet() {
 				nodevetsz, nodesallocated, firstavail);
 	// print each vector entry
 	for (int i = 0; i<nodevetsz; i++) {
-		printf("(%f %f) key %ld nw %ld ne %ld sw %ld se %dsubdivided\n",
+		printf("(%f %f) key %ld nw %ld ne %ld sw %ld se\n",
             nodevet[i].key.x, nodevet[i].key.y,
-            nodevet[i].nw, nodevet[i].ne, nodevet[i].sw, nodevet[i].se,
-            nodevet[i].subdivided);
+            nodevet[i].nw, nodevet[i].ne, nodevet[i].sw, nodevet[i].se);
 	}
 }
 

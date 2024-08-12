@@ -55,7 +55,6 @@ void subdivide(nodeaddr_t ad)
 
 	//nodekey_t key = curr.key;
 	//curr.key = INVALIDKEY;
-	curr.subdivided = true;
 	node_put(ad, &curr);
 
 	//quadtree_insert_rec(key, ad);
@@ -70,13 +69,13 @@ static void quadtree_insert_rec(nodekey_t key, nodeaddr_t curr)
 		return;
 	}
 
-	if (curr_node.key.x == -1 && !curr_node.subdivided) {
+	if (curr_node.key.x == -1 && curr_node.nw == INVALIDADDR) {
 		curr_node.key = key;
 		node_put(curr, &curr_node);
 		return;
 	}
 
-	if (!curr_node.subdivided) {
+	if (curr_node.nw == INVALIDADDR) {
 		subdivide(curr);
 		node_get(curr, &curr_node);
 	}
@@ -109,7 +108,7 @@ static nodeaddr_t quadtree_search_rec(nodekey_t key, nodeaddr_t curr)
 		return curr;
 	}
 
-	if (!curr_node.subdivided) {
+	if (curr_node.nw == INVALIDADDR) {
 		return -1;
 	}
 
