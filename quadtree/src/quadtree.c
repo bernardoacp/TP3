@@ -259,25 +259,25 @@ static void quadtree_k_nearest_rec(nodeaddr_t curr, long x, long y, long k, Heap
 	QuadTreeNode aux;
 	if (curr_node.nw != INVALIDADDR) {
 		node_get(curr_node.nw, &aux);
-		if (can_contain_closer_point(&aux.boundary, x, y, heap->neighbors[0].dist)) {
+		if (heap->size < k || can_contain_closer_point(&aux.boundary, x, y, heap->neighbors[0].dist)) {
 			quadtree_k_nearest_rec(curr_node.nw, x, y, k, heap);
 		}
 	}
 	if (curr_node.ne != INVALIDADDR) {
 		node_get(curr_node.ne, &aux);
-		if (can_contain_closer_point(&aux.boundary, x, y, heap->neighbors[0].dist)) {
+		if (heap->size < k || can_contain_closer_point(&aux.boundary, x, y, heap->neighbors[0].dist)) {
 			quadtree_k_nearest_rec(curr_node.ne, x, y, k, heap);
 		}
 	}
 	if (curr_node.sw != INVALIDADDR) {
 		node_get(curr_node.sw, &aux);
-		if (can_contain_closer_point(&aux.boundary, x, y, heap->neighbors[0].dist)) {
+		if (heap->size < k || can_contain_closer_point(&aux.boundary, x, y, heap->neighbors[0].dist)) {
 			quadtree_k_nearest_rec(curr_node.sw, x, y, k, heap);
 		}
 	}
 	if (curr_node.se != INVALIDADDR) {
 		node_get(curr_node.se, &aux);
-		if (can_contain_closer_point(&aux.boundary, x, y, heap->neighbors[0].dist)) {
+		if (heap->size < k || can_contain_closer_point(&aux.boundary, x, y, heap->neighbors[0].dist)) {
 			quadtree_k_nearest_rec(curr_node.se, x, y, k, heap);
 		}
 	}
@@ -330,7 +330,7 @@ void export_node(nodeaddr_t addr, FILE* file) {
 void export_quadtree(const char* filename) {
     FILE* file = fopen(filename, "w");
     if (!file) {
-        fprintf(stderr, "Could not open file for writing\n");
+        fprintf(stderr, "export_quadtree: could not open file for writing\n");
         return;
     }
 
