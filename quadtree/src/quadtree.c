@@ -4,9 +4,15 @@
 nodeaddr_t root = INVALIDADDR;
 long numpoints = 0;
 
+static double euclidean_dist(double x1, double y1, double x2, double y2);
+static int cmpknn(const void* a, const void* b);
 static void subdivide(nodeaddr_t ad);
 static void quadtree_insert_rec(nodekey_t key, nodeaddr_t curr);
 static nodeaddr_t quadtree_search_rec(nodekey_t key, nodeaddr_t curr);
+static double min_distance_to_boundary(double x, double y, Boundary* boundary) ;
+static bool can_contain_closer_point(Boundary* boundary, double x, double y, double max_dist);
+static void quadtree_k_nearest_rec(nodeaddr_t curr, long x, long y, long k, Heap* heap);
+
 
 // Create a binary tree with at most numnodes nodes
 void quadtree_create(long numnodes, Boundary qt_boundary) {
@@ -173,7 +179,7 @@ static bool check_overlap(nodeaddr_t addr, Boundary* bd)
 	return true;
 }
 
-// Function to recursively search for the nearest neighbor
+/*
 nodeaddr_t quadtree_nearest(long x, long y)
 {
 	Stack* stack = stack_initialize(numpoints);
@@ -214,6 +220,95 @@ nodeaddr_t quadtree_nearest(long x, long y)
 	stack_destroy(stack);
 	return nearest;
 }
+*/
+
+static double min_distance_to_boundary(double x, double y, Boundary* boundary) {
+    double dx = fmax(fmax(boundary->x_min - x, 0), x - boundary->x_max);
+    double dy = fmax(fmax(boundary->y_min - y, 0), y - boundary->y_max);
+    return sqrt(dx * dx + dy * dy);
+}
+
+static bool can_contain_closer_point(Boundary* boundary, double x, double y, double max_dist) {
+    double min_dist = min_distance_to_boundary(x, y, boundary);
+    return min_dist < max_dist;
+}
+
+static void quadtree_k_nearest_rec(nodeaddr_t curr, long x, long y, long k, Heap* heap)
+{	
+	if (curr == INVALIDADDR) {
+		return;
+	}
+
+	QuadTreeNode curr_node;
+	node_get(curr, &curr_node);
+
+	if (curr_node.key.x == -1) {
+		return;
+	}
+	
+	double dist = euclidean_dist(x, y, curr_node.key.x, curr_node.key.y);
+	
+	if (heap->size < k) {
+		heap_push(heap, (Neighbor) {curr, dist});
+	}
+	else if (dist < heap->neighbors[0].dist) {
+		heap_pop(heap);
+		heap_push(heap, (Neighbor) {curr, dist});
+	}
+
+	QuadTreeNode aux;
+	if (curr_node.nw != INVALIDADDR) {
+		node_get(curr_node.nw, &aux);
+		if (can_contain_closer_point(&aux.boundary, x, y, heap->neighbors[0].dist)) {
+			quadtree_k_nearest_rec(curr_node.nw, x, y, k, heap);
+		}
+	}
+	if (curr_node.ne != INVALIDADDR) {
+		node_get(curr_node.ne, &aux);
+		if (can_contain_closer_point(&aux.boundary, x, y, heap->neighbors[0].dist)) {
+			quadtree_k_nearest_rec(curr_node.ne, x, y, k, heap);
+		}
+	}
+	if (curr_node.sw != INVALIDADDR) {
+		node_get(curr_node.sw, &aux);
+		if (can_contain_closer_point(&aux.boundary, x, y, heap->neighbors[0].dist)) {
+			quadtree_k_nearest_rec(curr_node.sw, x, y, k, heap);
+		}
+	}
+	if (curr_node.se != INVALIDADDR) {
+		node_get(curr_node.se, &aux);
+		if (can_contain_closer_point(&aux.boundary, x, y, heap->neighbors[0].dist)) {
+			quadtree_k_nearest_rec(curr_node.se, x, y, k, heap);
+		}
+	}
+}
+
+static int cmpknn(const void* a, const void* b) {
+	Neighbor* k1 = (Neighbor*) a;
+	Neighbor* k2 = (Neighbor*) b;
+	if (k1->dist > k2->dist) return 1;
+	else if (k1->dist < k2->dist) return -1;
+	else return 0;
+}
+
+void quadtree_k_nearest(long x, long y, long k, long* result)
+{
+	// check whether the tree is null
+	if (root == INVALIDADDR) {
+		fprintf(stderr,"quadtree_search: tree empty\n");
+		return;
+	}
+	Heap* heap = heap_initialize(k);
+	// call the recursive function
+	quadtree_k_nearest_rec(root, x, y, k, heap);
+
+	qsort(heap->neighbors, k, sizeof(Neighbor), cmpknn);
+	
+	for (int i = 0; i < k; i++) {
+		result[i] = heap->neighbors[i].addr;
+	}
+}
+
 // Function to recursively export the QuadTree nodes
 void export_node(nodeaddr_t addr, FILE* file) {
     if (addr == INVALIDADDR) return;

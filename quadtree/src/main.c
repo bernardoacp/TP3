@@ -26,8 +26,12 @@ int main(void)
     printf("%ld\n", quadtree_search((Item) {1.000000, 1.000000}));
     printf("%ld\n", quadtree_search((Item) {83.000000, 86.000000}));
 
-    long nearest = quadtree_nearest(63, 30);
-    QuadTreeNode node;
-    node_get(nearest, &node);
-    printf("%f %f\n", node.key.x, node.key.y);
+    long result[5];
+    quadtree_k_nearest(1, 1, 5, result);
+    for (int i = 0; i < 5; i++)
+    {
+        QuadTreeNode node;
+        node_get(result[i], &node);
+        printf("%f %f\n", node.key.x, node.key.y);
+    }
 }
