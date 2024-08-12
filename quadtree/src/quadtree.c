@@ -3,6 +3,7 @@
 // even the quad tree root is encapsulated
 nodeaddr_t root = INVALIDADDR;
 
+static void subdivide(nodeaddr_t ad);
 static void quadtree_insert_rec(nodekey_t key, nodeaddr_t curr);
 static nodeaddr_t quadtree_search_rec(nodekey_t key, nodeaddr_t curr);
 
@@ -20,7 +21,7 @@ void quadtree_destroy() {
 	root = INVALIDADDR;
 }
 
-void subdivide(nodeaddr_t ad)
+static void subdivide(nodeaddr_t ad)
 {
 	QuadTreeNode curr;
 	node_get(ad, &curr);
@@ -53,11 +54,20 @@ void subdivide(nodeaddr_t ad)
 	aux.boundary = se;
 	curr.se = node_create(&aux);
 
-	//nodekey_t key = curr.key;
-	//curr.key = INVALIDKEY;
-	node_put(ad, &curr);
+	// Push down the point from the parent node to one of the children
+    //nodekey_t key = curr.key;
+    //curr.key = INVALIDKEY;
+    node_put(ad, &curr);
 
-	//quadtree_insert_rec(key, ad);
+    // Debugging statements to check the state of the nodes
+    // printf("Subdivided node at address %ld\n", ad);
+    // printf("NW child at address %ld\n", curr.nw);
+    // printf("NE child at address %ld\n", curr.ne);
+    // printf("SW child at address %ld\n", curr.sw);
+    // printf("SE child at address %ld\n", curr.se);
+
+    // Reinsert the point into the appropriate child node
+    //quadtree_insert_rec(key, ad);
 }
 
 static void quadtree_insert_rec(nodekey_t key, nodeaddr_t curr)
@@ -143,6 +153,28 @@ nodeaddr_t quadtree_search(nodekey_t key)
 	}
 	// call the recursive function
 	return quadtree_search_rec(key, root);
+}
+
+// calculates Euclidean distance between (x1,y1) and (x2,y2)
+static double euclidean_dist(double x1, double y1, double x2, double y2) {
+	return sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2) * 1.0); 
+}
+
+static bool check_overlap(nodeaddr_t addr, Boundary* bd)
+{
+	QuadTreeNode node;
+	node_get(addr, &node);
+
+	if (node.boundary.x_min > bd->x_max || node.boundary.x_max < bd->x_min || node.boundary.y_min > bd->y_max || node.boundary.y_max < bd->y_min) {
+		return false;
+	}
+	return true;
+}
+
+// Function to recursively search for the nearest neighbor
+nodeaddr_t quadtree_nearest(long x, long y, Boundary* bd)
+{
+	Stack* stack = stack_create();
 }
 
 // Function to recursively export the QuadTree nodes
