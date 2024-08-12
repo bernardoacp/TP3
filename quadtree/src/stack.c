@@ -1,10 +1,12 @@
 #include "stack.h"
 
-void stack_initialize(Stack* s, long capacity) {
+Stack* stack_initialize(long capacity) {
+    Stack* s = (Stack*) malloc(sizeof(Stack));
     s->data = (long*) malloc(capacity * sizeof(long));
     s->top = -1;
     s->size = 0;
     s->capacity = capacity;
+    return s;
 }
 
 void stack_destroy(Stack* s) {

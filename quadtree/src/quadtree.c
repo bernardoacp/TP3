@@ -2,6 +2,7 @@
 
 // even the quad tree root is encapsulated
 nodeaddr_t root = INVALIDADDR;
+long numnodes = 0;
 
 static void subdivide(nodeaddr_t ad);
 static void quadtree_insert_rec(nodekey_t key, nodeaddr_t curr);
@@ -172,9 +173,58 @@ static bool check_overlap(nodeaddr_t addr, Boundary* bd)
 }
 
 // Function to recursively search for the nearest neighbor
-nodeaddr_t quadtree_nearest(long x, long y, Boundary* bd)
+void quadtree_nearest(nodeaddr_t* knearest, long size, long x, long y)
 {
-	Stack* stack = stack_create();
+	Stack* stack = stack_initialize(1000);
+	stack_push(stack, root);
+	
+	QuadTreeNode aux;
+	node_get(root, &aux);
+	
+	double min_dist = euclidean_dist(aux.boundary.x_min, aux.boundary.y_min, aux.boundary.x_max, aux.boundary.y_max);
+	
+	nodeaddr_t nearest = INVALIDADDR;
+	while (stack->size) {
+		nodeaddr_t curr = stack_pop(stack);
+		node_get(curr, &aux);
+		if (aux.nw != INVALIDADDR && check_overlap(aux.nw, &(Boundary) {x - min_dist, x + min_dist, y - min_dist, y + min_dist})) {
+			stack_push(stack, aux.nw);
+		}
+		if (aux.ne != INVALIDADDR && check_overlap(aux.ne, &(Boundary) {x - min_dist, x + min_dist, y - min_dist, y + min_dist})) {
+			stack_push(stack, aux.ne);
+		}
+		if (aux.sw != INVALIDADDR && check_overlap(aux.sw, &(Boundary) {x - min_dist, x + min_dist, y - min_dist, y + min_dist})) {
+			stack_push(stack, aux.sw);
+		}
+		if (aux.se != INVALIDADDR && check_overlap(aux.se, &(Boundary) {x - min_dist, x + min_dist, y - min_dist, y + min_dist})) {
+			stack_push(stack, aux.se);
+		}
+		if (curr != INVALIDADDR) {
+			double dist = euclidean_dist(x, y, aux.key.x, aux.key.y);
+			if (dist < min_dist) {
+				min_dist = dist;
+				nearest = curr;
+			}
+		}
+	}
+	stack_destroy(stack);
+	return nearest;
+}
+
+nodeaddr_t* quadtree_knearest(long x, long y, long k)
+{
+	// to be implemented
+	nodeaddr_t* knearest = (nodeaddr_t*) malloc(k * sizeof(nodeaddr_t));
+	if (knearest == NULL) {
+		fprintf(stderr, "quadtree_knearest: could not allocate nearest\n");
+		return NULL;
+	}
+	long size = 0;
+	while (size < k) {
+		quadtree_nearest(knearest, size, x, y);
+		size++;
+	}
+	return NULL;
 }
 
 // Function to recursively export the QuadTree nodes

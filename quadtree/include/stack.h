@@ -11,7 +11,7 @@ typedef struct {
     long capacity;
 } Stack;
 
-void stack_initialize(Stack* s, long capacity);
+Stack* stack_initialize(long capacity);
 void stack_destroy(Stack* s);
 void stack_push(Stack* s, long value);
 long stack_pop(Stack* s);
