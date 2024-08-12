@@ -2,7 +2,7 @@
 
 // even the quad tree root is encapsulated
 nodeaddr_t root = INVALIDADDR;
-long numnodes = 0;
+long numpoints = 0;
 
 static void subdivide(nodeaddr_t ad);
 static void quadtree_insert_rec(nodekey_t key, nodeaddr_t curr);
@@ -108,6 +108,7 @@ void quadtree_insert(nodekey_t key)
 		return;
 	}
 	quadtree_insert_rec(key, root);
+	numpoints++;
 }
 
 static nodeaddr_t quadtree_search_rec(nodekey_t key, nodeaddr_t curr)
@@ -173,9 +174,9 @@ static bool check_overlap(nodeaddr_t addr, Boundary* bd)
 }
 
 // Function to recursively search for the nearest neighbor
-void quadtree_nearest(nodeaddr_t* knearest, long size, long x, long y)
+nodeaddr_t quadtree_nearest(long x, long y)
 {
-	Stack* stack = stack_initialize(1000);
+	Stack* stack = stack_initialize(numpoints);
 	stack_push(stack, root);
 	
 	QuadTreeNode aux;
@@ -183,7 +184,7 @@ void quadtree_nearest(nodeaddr_t* knearest, long size, long x, long y)
 	
 	double min_dist = euclidean_dist(aux.boundary.x_min, aux.boundary.y_min, aux.boundary.x_max, aux.boundary.y_max);
 	
-	nodeaddr_t nearest = INVALIDADDR;
+	nodeaddr_t nearest = root;
 	while (stack->size) {
 		nodeaddr_t curr = stack_pop(stack);
 		node_get(curr, &aux);
@@ -200,6 +201,9 @@ void quadtree_nearest(nodeaddr_t* knearest, long size, long x, long y)
 			stack_push(stack, aux.se);
 		}
 		if (curr != INVALIDADDR) {
+			if (aux.key.x == -1) {
+				continue;
+			}
 			double dist = euclidean_dist(x, y, aux.key.x, aux.key.y);
 			if (dist < min_dist) {
 				min_dist = dist;
@@ -210,23 +214,6 @@ void quadtree_nearest(nodeaddr_t* knearest, long size, long x, long y)
 	stack_destroy(stack);
 	return nearest;
 }
-
-nodeaddr_t* quadtree_knearest(long x, long y, long k)
-{
-	// to be implemented
-	nodeaddr_t* knearest = (nodeaddr_t*) malloc(k * sizeof(nodeaddr_t));
-	if (knearest == NULL) {
-		fprintf(stderr, "quadtree_knearest: could not allocate nearest\n");
-		return NULL;
-	}
-	long size = 0;
-	while (size < k) {
-		quadtree_nearest(knearest, size, x, y);
-		size++;
-	}
-	return NULL;
-}
-
 // Function to recursively export the QuadTree nodes
 void export_node(nodeaddr_t addr, FILE* file) {
     if (addr == INVALIDADDR) return;
