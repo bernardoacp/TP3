@@ -17,56 +17,25 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include "heap.h"
+#include "boundary.h"
+#include "qnode.h"
+#include "quadtree.h"
 
-// struct that contains the information about the recharging locations
-typedef struct {
-	char* idend;
-	long id_logrado;
-	char* sigla_tipo;
-	char* nome_logra;
-	int numero_imo;
-	char* nome_bairr;
-	char* nome_regio;
-	int cep;
-	double x;
-	double y;
-	int ativo;
-} addr_t, *ptr_addr_t;
-
-// struct that contain the distance information between the origin location and
-// each recharging location.
-typedef struct knn {
-	double dist; // distance between origin location and recharging location
-	int id;      // recharging location id
-} knn_t, *ptr_knn_t;
-
-// vector containing the information about the recharging locations
-addr_t* rechargevet = NULL;
 int nrecharge = 0;
 
-// qsort comparison function between distances to recharging locations
-int cmpknn(const void* a, const void* b) {
-	ptr_knn_t k1 = (ptr_knn_t) a;
-	ptr_knn_t k2 = (ptr_knn_t) b;
-	if (k1->dist > k2->dist) return 1;
-	else if (k1->dist < k2->dist) return -1;
-	else return 0;
-}
-
-// calculates Euclidean distance between (x1,y1) and (x2,y2)
-double dist(double x1, double y1, double x2, double y2) {
-	return sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2) * 1.0); 
-}
-
 // print the recharge location information
-void printrecharge(int pos){
-	printf("%s %s, %d, %s, %s, %d",rechargevet[pos].sigla_tipo,
-				rechargevet[pos].nome_logra, rechargevet[pos].numero_imo,
-				rechargevet[pos].nome_bairr, rechargevet[pos].nome_regio,
-				rechargevet[pos].cep);
+void printrecharge(int pos) {
+	QuadTreeNode aux;
+	node_get(pos, &aux);
+	printf("%s %s, %d, %s, %s, %d", aux.key.sigla_tipo,
+				aux.key.nome_logra, aux.key.numero_imo,
+				aux.key.nome_bairr, aux.key.nome_regio,
+				aux.key.cep);
 }
 
 // print illustrative map using gnuplot
+/*
 void printmap(ptr_knn_t kvet, int kmax, ptr_addr_t rvet, int nrec, double tx, double ty) {
 	FILE *out1, *out2;
 
@@ -112,6 +81,8 @@ void printmap(ptr_knn_t kvet, int kmax, ptr_addr_t rvet, int nrec, double tx, do
 	fclose(out1);
 }
 
+*/
+
 void load_recharge_stations(const char* filename) 
 {
 	FILE* file = fopen(filename, "r");
@@ -128,55 +99,51 @@ void load_recharge_stations(const char* filename)
         }
     }
 	
-	// allocate memory for the rechargevet vector
-	rechargevet = (ptr_addr_t) malloc(nrecharge*sizeof(addr_t));
-	if (rechargevet == NULL) {
-		fprintf(stderr, "Erro: nao foi possivel alocar memoria para o vetor de estacoes de recarga.\n");
-		exit(1);
-	}
+	quadtree_create(nrecharge, (Boundary) {600000, 700000, 7000000, 8000000});
 
 	// read the file and populate the rechargevet vector
 	rewind(file);
 	char buffer[1024];
 	int i = 0;
+	Item aux;
 	while (fgets(buffer, sizeof(buffer), file)) {
 		// remove newline character if present
 		buffer[strcspn(buffer, "\n")] = 0;
 
 		// parse the line
 		char* token = strtok(buffer, ",");
-		rechargevet[i].idend = strdup(token);
+		aux.idend = strdup(token);
 		
 		token = strtok(NULL, ",");
-		rechargevet[i].id_logrado = atol(token);
+		aux.id_logrado = atol(token);
 
 		token = strtok(NULL, ",");
-		rechargevet[i].sigla_tipo = strdup(token);
+		aux.sigla_tipo = strdup(token);
 
 		token = strtok(NULL, ",");
-		rechargevet[i].nome_logra = strdup(token);
+		aux.nome_logra = strdup(token);
 
 		token = strtok(NULL, ",");
-		rechargevet[i].numero_imo = atoi(token);
+		aux.numero_imo = atoi(token);
 
 		token = strtok(NULL, ",");
-		rechargevet[i].nome_bairr = strdup(token);
+		aux.nome_bairr = strdup(token);
 
 		token = strtok(NULL, ",");
-		rechargevet[i].nome_regio = strdup(token);
+		aux.nome_regio = strdup(token);
 
 		token = strtok(NULL, ",");
-		rechargevet[i].cep = atoi(token);
+		aux.cep = atoi(token);
 
 		token = strtok(NULL, ",");
-		rechargevet[i].x = atof(token);
+		aux.x = atof(token);
 
 		token = strtok(NULL, ",");
-		rechargevet[i].y = atof(token);
+		aux.y = atof(token);
 
-		rechargevet[i].ativo = 1;
+		aux.ativo = 1;
 		
-		i++;
+		quadtree_insert(aux);
 	}
 	fclose(file);
 }
@@ -196,69 +163,73 @@ void read_commands(const char* filename)
 
 		char operation;
 		char id[20];
+		Neighbor* result;
 		double x, y;
 		int n;
-		
+		nodeaddr_t addr;
 		switch (buffer[0]) {
 		case 'A':
 			// activate recharge station
-			sscanf(buffer, "%c %s", &operation, id);
-			for (int i = 0; i < nrecharge; i++) {
-				if (!strcmp(rechargevet[i].idend, id)) {
-					if (rechargevet[i].ativo) {
-						printf("Ponto de recarga %s já estava ativo.\n", id);
-					}
-					else {
-						rechargevet[i].ativo = 1;
-						printf("Ponto de recarga %s ativado.\n", id);
-					}
-					break;
+			sscanf(buffer, "%c %s %lf %lf", &operation, id, &x, &y);
+			addr = quadtree_search(id, x, y);
+			if (addr == INVALIDADDR) {
+				printf("Ponto de recarga %s não encontrado.\n", id);
+			}
+			else {
+				QuadTreeNode node;
+				node_get(addr, &node);
+				if (node.key.ativo) {
+					printf("Ponto de recarga %s já estava ativado.\n", id);
+				}
+				else {
+					node.key.ativo = 1;
+					node_put(addr, &node);
+					printf("Ponto de recarga %s ativado.\n", id);
 				}
 			}
 			break;
 		case 'D':
 			// deactivate recharge station
-			sscanf(buffer, "%c %s", &operation, id);
-			for (int i = 0; i < nrecharge; i++) {
-				if (!strcmp(rechargevet[i].idend, id)) {
-					if (!rechargevet[i].ativo) {
-						printf("Ponto de recarga %s já estava desativado.\n", id);
-					}
-					else {
-						rechargevet[i].ativo = 0;
-						printf("Ponto de recarga %s desativado.\n", id);
-					}
-					break;
+			sscanf(buffer, "%c %s %lf %lf", &operation, id, &x, &y);
+			addr = quadtree_search(id, x, y);
+			if (addr == INVALIDADDR) {
+				printf("Ponto de recarga %s não encontrado.\n", id);
+			}
+			else {
+				QuadTreeNode node;
+				node_get(addr, &node);
+				if (!node.key.ativo) {
+					printf("Ponto de recarga %s já estava desativado.\n", id);
+				}
+				else {
+					node.key.ativo = 0;
+					node_put(addr, &node);
+					printf("Ponto de recarga %s desativado.\n", id);
 				}
 			}
 			break;
 		case 'C':
 			// find n closest recharge stations
 			sscanf(buffer, "%c %lf %lf %d", &operation, &x, &y, &n);
-			
-			// create the vector of distances and populate it
-			ptr_knn_t kvet = (ptr_knn_t) malloc(nrecharge*sizeof(knn_t));
-			int kvet_size = 0; // track the number of active stations
-			
-			for (int i = 0; i < nrecharge; i++) {
-				if (!rechargevet[i].ativo) {
-					continue;
-				}
-				kvet[kvet_size].id = i;
-				kvet[kvet_size].dist = dist(x, y, rechargevet[i].x, rechargevet[i].y);
-				kvet_size++;
+			if (n > nrecharge) {
+				printf("Número de pontos de recarga solicitados maior que o número de pontos de recarga disponíveis.\n");
+				break;
 			}
-
-			// sort the vector of distances
-			qsort(kvet, kvet_size, sizeof(knn_t), cmpknn);
+			result = malloc(n * sizeof(Neighbor));
+			if (result == NULL) {
+				printf("Erro ao alocar memória.\n");
+				break;
+			}
+			quadtree_k_nearest(x, y, n, result);
 			
 			// print the n nearest recharging locations
+			QuadTreeNode aux;
 			for (int i = 0; i < n; i++) {
-				printrecharge(kvet[i].id);
-				printf(" (%f)\n", kvet[i].dist);
+				printrecharge(result[i].addr);
+				printf(" (%f)\n", result[i].dist);
 			}
-			printmap(kvet,n,rechargevet,nrecharge,x,y);
-			free(kvet);
+			//printmap(kvet,n,rechargevet,nrecharge,x,y);
+			//free(kvet);
 			break;
 		default:
 			printf("Comando inválido.\n");

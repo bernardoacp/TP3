@@ -10,8 +10,17 @@
 
 // struct that contains the information about the recharging locations
 typedef struct {
+	char* idend;
+	long id_logrado;
+	char* sigla_tipo;
+	char* nome_logra;
+	int numero_imo;
+	char* nome_bairr;
+	char* nome_regio;
+	int cep;
 	double x;
 	double y;
+	int ativo;
 } Item;
 
 // there are no pointers in a vectorized implementation, just vector indices
@@ -28,7 +37,7 @@ typedef struct {
 } QuadTreeNode;
 
 #define INVALIDADDR -2
-#define INVALIDKEY (Item) {-1, -1}
+#define INVALIDKEY (nodekey_t) {NULL, 0, NULL, NULL, 0, NULL, NULL, 0, 0, 0}
 #define INVALIDBOUNDARY (Boundary) {0, 0, 0, 0}
 
 long node_initialize(long numnodes, Boundary qt_boundary);

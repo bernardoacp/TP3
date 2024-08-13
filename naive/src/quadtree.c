@@ -8,7 +8,7 @@ static double euclidean_dist(double x1, double y1, double x2, double y2);
 static int cmpknn(const void* a, const void* b);
 static void subdivide(nodeaddr_t ad);
 static void quadtree_insert_rec(nodekey_t key, nodeaddr_t curr);
-static nodeaddr_t quadtree_search_rec(nodekey_t key, nodeaddr_t curr);
+static nodeaddr_t quadtree_search_rec(nodeaddr_t curr, char* idend, double x, double y);
 static double min_distance_to_boundary(double x, double y, Boundary* boundary) ;
 static bool can_contain_closer_point(Boundary* boundary, double x, double y, double max_dist);
 static void quadtree_k_nearest_rec(nodeaddr_t curr, long x, long y, long k, Heap* heap);
@@ -86,7 +86,7 @@ static void quadtree_insert_rec(nodekey_t key, nodeaddr_t curr)
 		return;
 	}
 
-	if (curr_node.key.x == -1 && curr_node.nw == INVALIDADDR) {
+	if (curr_node.key.idend == NULL && curr_node.nw == INVALIDADDR) {
 		curr_node.key = key;
 		node_put(curr, &curr_node);
 		return;
@@ -117,12 +117,12 @@ void quadtree_insert(nodekey_t key)
 	numpoints++;
 }
 
-static nodeaddr_t quadtree_search_rec(nodekey_t key, nodeaddr_t curr)
+static nodeaddr_t quadtree_search_rec(nodeaddr_t curr, char* idend, double x, double y)
 {
 	QuadTreeNode curr_node;
 	node_get(curr, &curr_node);
 
-	if (curr_node.key.x == key.x && curr_node.key.y == key.y) {
+	if (!strcmp(curr_node.key.idend, idend)) {
 		return curr;
 	}
 
@@ -132,27 +132,27 @@ static nodeaddr_t quadtree_search_rec(nodekey_t key, nodeaddr_t curr)
 
 	QuadTreeNode aux;
 	node_get(curr_node.nw, &aux);
-	if (boundary_contains(&aux.boundary, key.x, key.y)) {
-		return quadtree_search_rec(key, curr_node.nw);
+	if (boundary_contains(&aux.boundary, x, y)) {
+		return quadtree_search_rec(curr_node.nw, idend, x, y);
 	}
 
 	node_get(curr_node.ne, &aux);
-	if (boundary_contains(&aux.boundary, key.x, key.y)) {
-		return quadtree_search_rec(key, curr_node.ne);
+	if (boundary_contains(&aux.boundary, x, y)) {
+		return quadtree_search_rec(curr_node.ne, idend, x, y);
 	}
 
 	node_get(curr_node.sw, &aux);
-	if (boundary_contains(&aux.boundary, key.x, key.y)) {
-		return quadtree_search_rec(key, curr_node.sw);
+	if (boundary_contains(&aux.boundary, x, y)) {
+		return quadtree_search_rec(curr_node.sw, idend, x, y);
 	}
 
 	node_get(curr_node.se, &aux);
-	if (boundary_contains(&aux.boundary, key.x, key.y)) {
-		return quadtree_search_rec(key, curr_node.se);
+	if (boundary_contains(&aux.boundary, x, y)) {
+		return quadtree_search_rec(curr_node.se, idend, x, y);
 	}
 }
 
-nodeaddr_t quadtree_search(nodekey_t key)
+nodeaddr_t quadtree_search(char* idend, double x, double y)
 {
 	// check whether the tree is null
 	if (root == INVALIDADDR) {
@@ -160,7 +160,7 @@ nodeaddr_t quadtree_search(nodekey_t key)
 		return INVALIDADDR;
 	}
 	// call the recursive function
-	return quadtree_search_rec(key, root);
+	return quadtree_search_rec(root, idend, x, y);
 }
 
 // calculates Euclidean distance between (x1,y1) and (x2,y2)
@@ -199,7 +199,7 @@ static void quadtree_k_nearest_rec(nodeaddr_t curr, long x, long y, long k, Heap
 	QuadTreeNode curr_node;
 	node_get(curr, &curr_node);
 
-	if (curr_node.key.x == -1) {
+	if (curr_node.key.idend == NULL) {
 		return;
 	}
 	
@@ -248,7 +248,7 @@ static int cmpknn(const void* a, const void* b) {
 	else return 0;
 }
 
-void quadtree_k_nearest(long x, long y, long k, long* result)
+void quadtree_k_nearest(long x, long y, long k, Neighbor* result)
 {
 	// check whether the tree is null
 	if (root == INVALIDADDR) {
@@ -262,7 +262,7 @@ void quadtree_k_nearest(long x, long y, long k, long* result)
 	qsort(heap->neighbors, k, sizeof(Neighbor), cmpknn);
 	
 	for (int i = 0; i < k; i++) {
-		result[i] = heap->neighbors[i].addr;
+		result[i] = heap->neighbors[i];
 	}
 }
 

@@ -1,10 +1,23 @@
-all: biuaidinaive
-	./bin/biuaidinaive
-	gnuplot ./plot/out.gp
-	evince ./plot/out.eps
+# compiler
+CC = gcc
 
-biuaidinaive: ./src/biuaidinaive.c
-	gcc -Wall -o ./bin/biuaidinaive ./src/biuaidinaive.c -lm -g
+# folders
+INCLUDE_FOLDER = ./include/
+BIN_FOLDER = ./bin/
+OBJ_FOLDER = ./obj/
+SRC_FOLDER = ./src/
+
+# sources
+MAIN = main
+TARGET = tp3.out
+SRC = $(wildcard $(SRC_FOLDER)*.c)
+OBJ = $(patsubst $(SRC_FOLDER)%.c, $(OBJ_FOLDER)%.o, $(SRC))
+
+$(OBJ_FOLDER)%.o: $(SRC_FOLDER)%.c
+	$(CC) -c $< -o $@ -I$(INCLUDE_FOLDER) -g
+
+all: $(OBJ)
+	$(CC) -o $(BIN_FOLDER)$(TARGET) $(OBJ) -lm
 
 clean:
-	rm -rf ./bin/biuaidinaive ./plot/out.eps ./plot/out.gp ./plot/*.gpdat
+	@rm -rf $(OBJ_FOLDER)* $(BIN_FOLDER)tp3.out 
