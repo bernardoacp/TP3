@@ -17,12 +17,28 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <time.h>
 #include "heap.h"
 #include "boundary.h"
 #include "qnode.h"
 #include "quadtree.h"
 
 int nrecharge = 0;
+
+void clkDiff(struct timespec t1, struct timespec t2, struct timespec * res) {
+    // Descricao: calcula a diferenca entre t2 e t1, que e armazenada em res
+    // Entrada: t1, t2
+    // Saida: res
+    if (t2.tv_nsec < t1.tv_nsec){
+        // ajuste necessario, utilizando um segundo de tv_sec
+        res->tv_nsec = 1000000000 + t2.tv_nsec - t1.tv_nsec;
+        res->tv_sec = t2.tv_sec - t1.tv_sec - 1;
+    } else {
+        // nao e necessario ajuste
+        res->tv_nsec = t2.tv_nsec - t1.tv_nsec;
+        res->tv_sec = t2.tv_sec - t1.tv_sec;
+    }
+}
 
 // print the recharge location information
 void printrecharge(int pos) {
@@ -240,7 +256,17 @@ void read_commands(const char* filename)
 
 int main(int argc, char** argv) 
 {
+	struct timespec inittp, endtp, restp;
+    int retp;
+	
 	load_recharge_stations("./files/estacoes.csv");
+
+	retp = clock_gettime(CLOCK_MONOTONIC, &inittp);
 	read_commands("./files/comandos.txt");
+	retp = clock_gettime(CLOCK_MONOTONIC, &endtp);
+	clkDiff(inittp, endtp, &restp);
+
+	printf("%ld.%.9ld\n", restp.tv_sec, restp.tv_nsec);
+
 	return 0;
 }
