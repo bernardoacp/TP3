@@ -11,7 +11,7 @@ static void quadtree_insert_rec(nodekey_t key, nodeaddr_t curr);
 static nodeaddr_t quadtree_search_rec(nodeaddr_t curr, char* idend, double x, double y);
 static double min_distance_to_boundary(double x, double y, Boundary* boundary) ;
 static bool can_contain_closer_point(Boundary* boundary, double x, double y, double max_dist);
-static void quadtree_k_nearest_rec(nodeaddr_t curr, long x, long y, long k, Heap* heap);
+static void quadtree_k_nearest_rec(nodeaddr_t curr, double x, double y, long k, Heap* heap);
 
 
 // Create a binary tree with at most numnodes nodes
@@ -190,7 +190,7 @@ static bool can_contain_closer_point(Boundary* boundary, double x, double y, dou
     return min_dist < max_dist;
 }
 
-static void quadtree_k_nearest_rec(nodeaddr_t curr, long x, long y, long k, Heap* heap)
+static void quadtree_k_nearest_rec(nodeaddr_t curr, double x, double y, long k, Heap* heap)
 {	
 	if (curr == INVALIDADDR) {
 		return;
@@ -248,7 +248,7 @@ static int cmpknn(const void* a, const void* b) {
 	else return 0;
 }
 
-void quadtree_k_nearest(long x, long y, long k, Neighbor* result)
+void quadtree_k_nearest(double x, double y, long k, Neighbor* result)
 {
 	// check whether the tree is null
 	if (root == INVALIDADDR) {

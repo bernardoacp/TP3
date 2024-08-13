@@ -18,10 +18,10 @@
 #include <math.h>
 #include <string.h>
 #include <time.h>
+#include "quadtree.h"
+#include "qnode.h"
 #include "heap.h"
 #include "boundary.h"
-#include "qnode.h"
-#include "quadtree.h"
 
 int nrecharge = 0;
 
@@ -181,7 +181,7 @@ void read_commands(const char* filename)
 		char id[20];
 		Neighbor* result;
 		double x, y;
-		int n;
+		long n;
 		nodeaddr_t addr;
 		switch (buffer[0]) {
 		case 'A':
@@ -226,7 +226,7 @@ void read_commands(const char* filename)
 			break;
 		case 'C':
 			// find n closest recharge stations
-			sscanf(buffer, "%c %lf %lf %d", &operation, &x, &y, &n);
+			sscanf(buffer, "%c %lf %lf %ld", &operation, &x, &y, &n);
 			if (n > nrecharge) {
 				printf("Número de pontos de recarga solicitados maior que o número de pontos de recarga disponíveis.\n");
 				break;
