@@ -51,9 +51,11 @@ void printrecharge(int pos) {
 }
 
 // print illustrative map using gnuplot
-/*
-void printmap(ptr_knn_t kvet, int kmax, ptr_addr_t rvet, int nrec, double tx, double ty) {
+void printmap(Neighbor* kvet, int kmax, int nrec, double tx, double ty) {
 	FILE *out1, *out2;
+
+	// Export the quadtree data
+    export_quadtree("plot/quadtree.gpdat");
 
 	// gnuplot script. to obtain the actual map, it is necessary to run:
 	// gnuplot out.gp
@@ -67,7 +69,7 @@ void printmap(ptr_knn_t kvet, int kmax, ptr_addr_t rvet, int nrec, double tx, do
 	fprintf(out1,"set ylabel \"\"\n");
 	fprintf(out1,"unset xtics \n");
 	fprintf(out1,"unset ytics \n");
-	fprintf(out1,"plot \"plot/origin.gpdat\" t \"Your location\" pt 4 ps 2, \"plot/recharge.gpdat\" t \"\", \"plot/suggested.gpdat\" t \"Nearest stations\" pt 7 ps 2, \"plot/deactivated.gpdat\" t \"Deactivated stations\" pt 2 ps 1\n");
+	fprintf(out1,"plot \"plot/origin.gpdat\" t \"Your location\" pt 4 ps 2, \"plot/recharge.gpdat\" t \"\", \"plot/suggested.gpdat\" t \"Nearest stations\" pt 7 ps 2, \"plot/deactivated.gpdat\" t \"Deactivated stations\" pt 2 ps 1, \"plot/quadtree.gpdat\" u (($1+$2)/2):(($3+$4)/2):(($2-$1)/2):(($4-$3)/2) w boxxy t \"\"\n");
 	fclose(out1);
 
 	// origin point, just one pair of x, y coordinates
@@ -79,25 +81,29 @@ void printmap(ptr_knn_t kvet, int kmax, ptr_addr_t rvet, int nrec, double tx, do
 	out1 = fopen("plot/recharge.gpdat","wt");
 	//  deactivated recharging locations
     out2 = fopen("plot/deactivated.gpdat","wt");
-	for (int i=0; i<nrec; i++) {
-		if (!rvet[i].ativo) {
-			fprintf(out2,"%f %f\n",rvet[i].x, rvet[i].y);
+	QuadTreeNode aux;
+	for (int i = 0; i < nrec; i++) {
+		node_get(i, &aux);
+		if (aux.key.idend == NULL) {
 			continue;
 		}
-		fprintf(out1,"%f %f\n",rvet[i].x, rvet[i].y);
+		if (!aux.key.ativo) {
+			fprintf(out2,"%f %f\n", aux.key.x, aux.key.y);
+			continue;
+		}
+		fprintf(out1,"%f %f\n", aux.key.x, aux.key.y);
 	}
 	fclose(out1);
 	fclose(out2);
 
 	// the nearest recharging locations
 	out1 = fopen("plot/suggested.gpdat","wt");
-	for (int i=0; i<kmax; i++) {
-		fprintf(out1,"%f %f\n",rvet[kvet[i].id].x, rvet[kvet[i].id].y);
+	for (int i = 0; i < kmax; i++) {
+		node_get(kvet[i].addr, &aux);
+		fprintf(out1,"%f %f\n", aux.key.x, aux.key.y);
 	}
 	fclose(out1);
 }
-
-*/
 
 void load_recharge_stations(const char* filename) 
 {
@@ -115,7 +121,7 @@ void load_recharge_stations(const char* filename)
         }
     }
 	
-	quadtree_create(nrecharge, (Boundary) {600000, 700000, 7000000, 8000000});
+	quadtree_create(nrecharge, (Boundary) {599226.548201479, 617245.722700543, 7787655.29633281, 7811550.48160007});
 
 	// read the file and populate the rechargevet vector
 	rewind(file);
@@ -244,8 +250,8 @@ void read_commands(const char* filename)
 				printrecharge(result[i].addr);
 				printf(" (%f)\n", result[i].dist);
 			}
-			//printmap(kvet,n,rechargevet,nrecharge,x,y);
-			//free(kvet);
+			printmap(result,n,nrecharge,x,y);
+			free(result);
 			break;
 		default:
 			printf("Comando inválido.\n");
