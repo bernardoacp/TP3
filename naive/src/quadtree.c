@@ -204,10 +204,10 @@ static void quadtree_k_nearest_rec(nodeaddr_t curr, double x, double y, long k, 
 	
 	double dist = euclidean_dist(x, y, curr_node.key.x, curr_node.key.y);
 	
-	if (heap->size < k) {
+	if (heap->size < k && curr_node.key.ativo) {
 		heap_push(heap, (Neighbor) {curr, dist});
 	}
-	else if (dist < heap->neighbors[0].dist) {
+	else if (dist < heap->neighbors[0].dist && curr_node.key.ativo) {
 		heap_pop(heap);
 		heap_push(heap, (Neighbor) {curr, dist});
 	}
