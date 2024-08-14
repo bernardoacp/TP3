@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "stdlib.h": "c",
-        "qnode.h": "c"
+        "qnode.h": "c",
+        "quadtree.h": "c"
     }
 }
