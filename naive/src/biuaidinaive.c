@@ -121,7 +121,7 @@ void load_recharge_stations(const char* filename)
         }
     }
 	
-	quadtree_create(nrecharge, (Boundary) {599226.548201479, 617245.722700543, 7787655.29633281, 7811550.48160007});
+	quadtree_create(nrecharge, (Boundary) {598017.313632323, 619122.989979841, 7785041.75619417, 7812836.09085508});
 
 	// read the file and populate the rechargevet vector
 	rewind(file);
