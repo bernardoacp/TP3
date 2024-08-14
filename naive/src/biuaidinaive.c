@@ -25,6 +25,14 @@
 
 int nrecharge = 0;
 
+typedef struct {
+	char* idend;
+	double x;
+	double y;
+} Consulta;
+
+Consulta* vet;
+
 void clkDiff(struct timespec t1, struct timespec t2, struct timespec * res) {
     // Descricao: calcula a diferenca entre t2 e t1, que e armazenada em res
     // Entrada: t1, t2
@@ -105,6 +113,31 @@ void printmap(Neighbor* kvet, int kmax, int nrec, double tx, double ty) {
 	fclose(out1);
 }
 
+Consulta* bin_search(char* idend, Consulta* vet, int n) {
+	int l = 0, r = n - 1;
+	while (l <= r) {
+		int m = l + (r - l) / 2;
+		if (!strcmp(vet[m].idend, idend)) {
+			return &vet[m];
+		}
+		if (strcmp(vet[m].idend, idend) < 0) {
+			l = m + 1;
+		}
+		else {
+			r = m - 1;
+		}
+	}
+	return NULL;
+}
+
+int cmpknn(const void* a, const void* b) {
+	Consulta* k1 = (Consulta*) a;
+	Consulta* k2 = (Consulta*) b;
+	if (strcmp(k1->idend, k2->idend) > 0) return 1;
+	else if (strcmp(k1->idend, k2->idend) < 0) return -1;
+	else return 0;
+}
+
 void load_recharge_stations(const char* filename) 
 {
 	FILE* file = fopen(filename, "r");
@@ -115,7 +148,7 @@ void load_recharge_stations(const char* filename)
 
 	// read the file and populate the quadtree
 	char buffer[1024];
-		if (fgets(buffer, sizeof(buffer), file) == NULL) {
+	if (fgets(buffer, sizeof(buffer), file) == NULL) {
 		fprintf(stderr, "Erro: nao foi possivel ler o numero de pontos de recarga\n");
 		fclose(file);
 		exit(1);
@@ -125,15 +158,22 @@ void load_recharge_stations(const char* filename)
 	sscanf(buffer, "%d", &nrecharge);
 
 	quadtree_create(nrecharge, (Boundary) {598017.313632323, 619122.989979841, 7785041.75619417, 7812836.09085508});
+	vet = malloc(nrecharge * sizeof(Consulta));
 
 	Item aux;
-	while (fgets(buffer, sizeof(buffer), file)) {
+	for (int i = 0; i < nrecharge; i++) {
+		if (fgets(buffer, sizeof(buffer), file) == NULL) {
+			fprintf(stderr, "Erro: nao foi possivel ler o ponto de recarga %d\n", i);
+			fclose(file);
+			exit(1);
+		}
 		// remove newline character if present
 		buffer[strcspn(buffer, "\n")] = 0;
 
 		// parse the line
 		char* token = strtok(buffer, ";");
 		aux.idend = strdup(token);
+		vet[i].idend = strdup(token);
 		
 		token = strtok(NULL, ";");
 		aux.id_logrado = atol(token);
@@ -158,15 +198,19 @@ void load_recharge_stations(const char* filename)
 
 		token = strtok(NULL, ";");
 		aux.x = atof(token);
+		vet[i].x = atof(token);
 
 		token = strtok(NULL, ";");
 		aux.y = atof(token);
+		vet[i].y = atof(token);
 
 		aux.ativo = true;
 		
 		quadtree_insert(aux);
 	}
 	fclose(file);
+
+	qsort(vet, nrecharge, sizeof(Consulta), cmpknn);
 }
 
 void read_commands(const char* filename) 
@@ -184,24 +228,45 @@ void read_commands(const char* filename)
 	}
 
 	char buffer[1024];
-	while (fgets(buffer, sizeof(buffer), file)) {
+	if (fgets(buffer, sizeof(buffer), file) == NULL) {
+        fprintf(stderr, "Erro: nao foi possivel ler o numero de comandos\n");
+        fclose(file);
+        fclose(out);
+        exit(1);
+    }
+	int num_commands;
+    sscanf(buffer, "%d", &num_commands);
+
+	for (int i = 0; i < num_commands; i++) {
+		if (fgets(buffer, sizeof(buffer), file) == NULL) {
+			fprintf(stderr, "Erro: nao foi possivel ler o comando %d\n", i);
+			fclose(file);
+			fclose(out);
+			exit(1);
+		}
 		// remove newline character if present
 		buffer[strcspn(buffer, "\n")] = 0;
 
 		char operation;
 		char id[20];
 		Neighbor* result;
+		Consulta* query;
+
 		double x, y;
 		long n;
 		nodeaddr_t addr;
+		
 		switch (buffer[0]) {
 		case 'A':
 			// activate recharge station
-			sscanf(buffer, "%c %s %lf %lf", &operation, id, &x, &y);
+			sscanf(buffer, "%c %s", &operation, id);
 			
-			fprintf(out, "%c %s %lf %lf\n", operation, id, x, y);
+			fprintf(out, "%c %s\n", operation, id);
+
+			query = bin_search(id, vet, nrecharge);
 			
-			addr = quadtree_search(id, x, y);
+			addr = quadtree_search(id, query->x, query->y);
+			
 			if (addr == INVALIDADDR) {
 				fprintf(out, "Ponto de recarga %s não encontrado.\n", id);
 			}
@@ -220,11 +285,14 @@ void read_commands(const char* filename)
 			break;
 		case 'D':
 			// deactivate recharge station
-			sscanf(buffer, "%c %s %lf %lf", &operation, id, &x, &y);
+			sscanf(buffer, "%c %s", &operation, id);
 
-			fprintf(out, "%c %s %lf %lf\n", operation, id, x, y);
+			fprintf(out, "%c %s\n", operation, id);
 
-			addr = quadtree_search(id, x, y);
+			query = bin_search(id, vet, nrecharge);
+
+			addr = quadtree_search(id, query->x, query->y);
+			
 			if (addr == INVALIDADDR) {
 				fprintf(out, "Ponto de recarga %s não encontrado.\n", id);
 			}
@@ -248,12 +316,12 @@ void read_commands(const char* filename)
 			fprintf(out, "%c %lf %lf %ld\n", operation, x, y, n);
 
 			if (n > nrecharge) {
-				printf("Número de pontos de recarga solicitados maior que o número de pontos de recarga disponíveis.\n");
+				fprintf(stderr, "Número de pontos de recarga solicitados maior que o número de pontos de recarga disponíveis.\n");
 				break;
 			}
 			result = malloc(n * sizeof(Neighbor));
 			if (result == NULL) {
-				printf("Erro ao alocar memória.\n");
+				fprintf(stderr, "Erro ao alocar memória.\n");
 				break;
 			}
 			quadtree_k_nearest(x, y, n, result);
@@ -268,7 +336,7 @@ void read_commands(const char* filename)
 			free(result);
 			break;
 		default:
-			printf("Comando inválido.\n");
+			fprintf(stderr, "Comando inválido.\n");
 			break;
 		}
 	}
