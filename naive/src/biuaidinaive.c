@@ -49,10 +49,10 @@ void clkDiff(struct timespec t1, struct timespec t2, struct timespec * res) {
 }
 
 // print the recharge location information
-void printrecharge(int pos, FILE* out) {
+void printrecharge(int pos) {
 	QuadTreeNode aux;
 	node_get(pos, &aux);
-	fprintf(out, "%s %s, %d, %s, %s, %d", aux.key.sigla_tipo,
+	printf("%s %s, %d, %s, %s, %d", aux.key.sigla_tipo,
 				aux.key.nome_logra, aux.key.numero_imo,
 				aux.key.nome_bairr, aux.key.nome_regio,
 				aux.key.cep);
@@ -221,27 +221,19 @@ void read_commands(const char* filename)
 		exit(1);
 	}
 
-	FILE* out = fopen("./files/geracarga.out", "w");
-	if (file == NULL) {
-		fprintf(stderr, "Erro: nao foi possivel abrir o arquivo geracarga.out\n");
-		exit(1);
-	}
-
 	char buffer[1024];
 	if (fgets(buffer, sizeof(buffer), file) == NULL) {
         fprintf(stderr, "Erro: nao foi possivel ler o numero de comandos\n");
         fclose(file);
-        fclose(out);
         exit(1);
     }
 	int num_commands;
     sscanf(buffer, "%d", &num_commands);
 
-	for (int i = 0; i < num_commands; i++) {
+	for (int i = 0; i <= num_commands; i++) {
 		if (fgets(buffer, sizeof(buffer), file) == NULL) {
 			fprintf(stderr, "Erro: nao foi possivel ler o comando %d\n", i);
 			fclose(file);
-			fclose(out);
 			exit(1);
 		}
 		// remove newline character if present
@@ -261,25 +253,25 @@ void read_commands(const char* filename)
 			// activate recharge station
 			sscanf(buffer, "%c %s", &operation, id);
 			
-			fprintf(out, "%c %s\n", operation, id);
+			printf("%c %s\n", operation, id);
 
 			query = bin_search(id, vet, nrecharge);
 			
 			addr = quadtree_search(id, query->x, query->y);
 			
 			if (addr == INVALIDADDR) {
-				fprintf(out, "Ponto de recarga %s não encontrado.\n", id);
+				printf("Ponto de recarga %s não encontrado.\n", id);
 			}
 			else {
 				QuadTreeNode node;
 				node_get(addr, &node);
 				if (node.key.ativo) {
-					fprintf(out, "Ponto de recarga %s já estava ativo.\n", id);
+					printf("Ponto de recarga %s já estava ativo.\n", id);
 				}
 				else {
 					node.key.ativo = true;
 					node_put(addr, &node);
-					fprintf(out, "Ponto de recarga %s ativado.\n", id);
+					printf("Ponto de recarga %s ativado.\n", id);
 				}
 			}
 			break;
@@ -287,25 +279,25 @@ void read_commands(const char* filename)
 			// deactivate recharge station
 			sscanf(buffer, "%c %s", &operation, id);
 
-			fprintf(out, "%c %s\n", operation, id);
+			printf("%c %s\n", operation, id);
 
 			query = bin_search(id, vet, nrecharge);
 
 			addr = quadtree_search(id, query->x, query->y);
 			
 			if (addr == INVALIDADDR) {
-				fprintf(out, "Ponto de recarga %s não encontrado.\n", id);
+				printf("Ponto de recarga %s não encontrado.\n", id);
 			}
 			else {
 				QuadTreeNode node;
 				node_get(addr, &node);
 				if (!node.key.ativo) {
-					fprintf(out, "Ponto de recarga %s já estava desativado.\n", id);
+					printf("Ponto de recarga %s já estava desativado.\n", id);
 				}
 				else {
 					node.key.ativo = false;
 					node_put(addr, &node);
-					fprintf(out, "Ponto de recarga %s desativado.\n", id);
+					printf("Ponto de recarga %s desativado.\n", id);
 				}
 			}
 			break;
@@ -313,7 +305,7 @@ void read_commands(const char* filename)
 			// find n closest recharge stations
 			sscanf(buffer, "%c %lf %lf %ld", &operation, &x, &y, &n);
 
-			fprintf(out, "%c %lf %lf %ld\n", operation, x, y, n);
+			printf("%c %lf %lf %ld\n", operation, x, y, n);
 
 			if (n > nrecharge) {
 				fprintf(stderr, "Número de pontos de recarga solicitados maior que o número de pontos de recarga disponíveis.\n");
@@ -329,10 +321,10 @@ void read_commands(const char* filename)
 			// print the n nearest recharging locations
 			QuadTreeNode aux;
 			for (int i = 0; i < n; i++) {
-				printrecharge(result[i].addr, out);
-				fprintf(out, "(%.3f)\n", result[i].dist);
+				printrecharge(result[i].addr);
+				printf(" (%.3f)\n", result[i].dist);
 			}
-			printmap(result,n,nrecharge,x,y);
+			//printmap(result,n,nrecharge,x,y);
 			free(result);
 			break;
 		default:
@@ -343,18 +335,9 @@ void read_commands(const char* filename)
 }
 
 int main(int argc, char** argv) 
-{
-	struct timespec inittp, endtp, restp;
-    int retp;
-	
-	load_recharge_stations("./files/geracarga.base");
-
-	retp = clock_gettime(CLOCK_MONOTONIC, &inittp);
-	read_commands("./files/geracarga.ev");
-	retp = clock_gettime(CLOCK_MONOTONIC, &endtp);
-	clkDiff(inittp, endtp, &restp);
-
-	printf("%ld.%.9ld\n", restp.tv_sec, restp.tv_nsec);
+{	
+	load_recharge_stations("geracarga.base");
+	read_commands("geracarga.ev");
 
 	return 0;
 }
