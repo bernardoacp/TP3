@@ -6,6 +6,7 @@ INCLUDE_FOLDER = ./include/
 BIN_FOLDER = ./bin/
 OBJ_FOLDER = ./obj/
 SRC_FOLDER = ./src/
+PLT_FOLDER = ./plot/
 
 # sources
 MAIN = main
@@ -20,4 +21,4 @@ all: $(OBJ)
 	$(CC) -o $(BIN_FOLDER)$(TARGET) $(OBJ) -lm
 
 clean:
-	@rm -rf $(OBJ_FOLDER)* $(BIN_FOLDER)tp3.out 
+	@rm -rf $(OBJ_FOLDER)* $(PLT_FOLDER)* $(BIN_FOLDER)tp3.out 
