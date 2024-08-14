@@ -13,7 +13,6 @@ static double min_distance_to_boundary(double x, double y, Boundary* boundary) ;
 static bool can_contain_closer_point(Boundary* boundary, double x, double y, double max_dist);
 static void quadtree_k_nearest_rec(nodeaddr_t curr, double x, double y, long k, Heap* heap);
 
-
 // Create a binary tree with at most numnodes nodes
 void quadtree_create(long numnodes, Boundary qt_boundary) {
 	// we should create and initialize the vector that will contain the tree
