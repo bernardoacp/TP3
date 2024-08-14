@@ -20,7 +20,7 @@ typedef struct {
 	int cep;
 	double x;
 	double y;
-	int ativo;
+	bool ativo;
 } Item;
 
 // there are no pointers in a vectorized implementation, just vector indices

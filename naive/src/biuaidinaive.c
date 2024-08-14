@@ -41,10 +41,10 @@ void clkDiff(struct timespec t1, struct timespec t2, struct timespec * res) {
 }
 
 // print the recharge location information
-void printrecharge(int pos) {
+void printrecharge(int pos, FILE* out) {
 	QuadTreeNode aux;
 	node_get(pos, &aux);
-	printf("%s %s, %d, %s, %s, %d", aux.key.sigla_tipo,
+	fprintf(out, "%s %s, %d, %s, %s, %d", aux.key.sigla_tipo,
 				aux.key.nome_logra, aux.key.numero_imo,
 				aux.key.nome_bairr, aux.key.nome_regio,
 				aux.key.cep);
@@ -112,58 +112,57 @@ void load_recharge_stations(const char* filename)
 		fprintf(stderr, "Erro: nao foi possivel abrir o arquivo %s\n", filename);
 		exit(1);
 	}
-	char ch;
 
-	// count the number of lines in the file
-	while ((ch = fgetc(file)) != EOF) {
-        if (ch == '\n') {
-            nrecharge++;
-        }
-    }
+	// read the file and populate the quadtree
+	char buffer[1024];
+		if (fgets(buffer, sizeof(buffer), file) == NULL) {
+		fprintf(stderr, "Erro: nao foi possivel ler o numero de pontos de recarga\n");
+		fclose(file);
+		exit(1);
+	}	
 	
+	buffer[strcspn(buffer, "\n")] = 0;
+	sscanf(buffer, "%d", &nrecharge);
+
 	quadtree_create(nrecharge, (Boundary) {598017.313632323, 619122.989979841, 7785041.75619417, 7812836.09085508});
 
-	// read the file and populate the rechargevet vector
-	rewind(file);
-	char buffer[1024];
-	int i = 0;
 	Item aux;
 	while (fgets(buffer, sizeof(buffer), file)) {
 		// remove newline character if present
 		buffer[strcspn(buffer, "\n")] = 0;
 
 		// parse the line
-		char* token = strtok(buffer, ",");
+		char* token = strtok(buffer, ";");
 		aux.idend = strdup(token);
 		
-		token = strtok(NULL, ",");
+		token = strtok(NULL, ";");
 		aux.id_logrado = atol(token);
 
-		token = strtok(NULL, ",");
+		token = strtok(NULL, ";");
 		aux.sigla_tipo = strdup(token);
 
-		token = strtok(NULL, ",");
+		token = strtok(NULL, ";");
 		aux.nome_logra = strdup(token);
 
-		token = strtok(NULL, ",");
+		token = strtok(NULL, ";");
 		aux.numero_imo = atoi(token);
 
-		token = strtok(NULL, ",");
+		token = strtok(NULL, ";");
 		aux.nome_bairr = strdup(token);
 
-		token = strtok(NULL, ",");
+		token = strtok(NULL, ";");
 		aux.nome_regio = strdup(token);
 
-		token = strtok(NULL, ",");
+		token = strtok(NULL, ";");
 		aux.cep = atoi(token);
 
-		token = strtok(NULL, ",");
+		token = strtok(NULL, ";");
 		aux.x = atof(token);
 
-		token = strtok(NULL, ",");
+		token = strtok(NULL, ";");
 		aux.y = atof(token);
 
-		aux.ativo = 1;
+		aux.ativo = true;
 		
 		quadtree_insert(aux);
 	}
@@ -175,6 +174,12 @@ void read_commands(const char* filename)
 	FILE* file = fopen(filename, "r");
 	if (file == NULL) {
 		fprintf(stderr, "Erro: nao foi possivel abrir o arquivo %s\n", filename);
+		exit(1);
+	}
+
+	FILE* out = fopen("./files/geracarga.out", "w");
+	if (file == NULL) {
+		fprintf(stderr, "Erro: nao foi possivel abrir o arquivo geracarga.out\n");
 		exit(1);
 	}
 
@@ -193,46 +198,55 @@ void read_commands(const char* filename)
 		case 'A':
 			// activate recharge station
 			sscanf(buffer, "%c %s %lf %lf", &operation, id, &x, &y);
+			
+			fprintf(out, "%c %s %lf %lf\n", operation, id, x, y);
+			
 			addr = quadtree_search(id, x, y);
 			if (addr == INVALIDADDR) {
-				printf("Ponto de recarga %s não encontrado.\n", id);
+				fprintf(out, "Ponto de recarga %s não encontrado.\n", id);
 			}
 			else {
 				QuadTreeNode node;
 				node_get(addr, &node);
 				if (node.key.ativo) {
-					printf("Ponto de recarga %s já estava ativado.\n", id);
+					fprintf(out, "Ponto de recarga %s já estava ativo.\n", id);
 				}
 				else {
-					node.key.ativo = 1;
+					node.key.ativo = true;
 					node_put(addr, &node);
-					printf("Ponto de recarga %s ativado.\n", id);
+					fprintf(out, "Ponto de recarga %s ativado.\n", id);
 				}
 			}
 			break;
 		case 'D':
 			// deactivate recharge station
 			sscanf(buffer, "%c %s %lf %lf", &operation, id, &x, &y);
+
+			fprintf(out, "%c %s %lf %lf\n", operation, id, x, y);
+
 			addr = quadtree_search(id, x, y);
 			if (addr == INVALIDADDR) {
-				printf("Ponto de recarga %s não encontrado.\n", id);
+				fprintf(out, "Ponto de recarga %s não encontrado.\n", id);
 			}
 			else {
 				QuadTreeNode node;
 				node_get(addr, &node);
 				if (!node.key.ativo) {
-					printf("Ponto de recarga %s já estava desativado.\n", id);
+					fprintf(out, "Ponto de recarga %s já estava desativado.\n", id);
 				}
 				else {
-					node.key.ativo = 0;
+					node.key.ativo = false;
 					node_put(addr, &node);
-					printf("Ponto de recarga %s desativado.\n", id);
+					fprintf(out, "Ponto de recarga %s desativado.\n", id);
 				}
 			}
 			break;
 		case 'C':
 			// find n closest recharge stations
 			sscanf(buffer, "%c %lf %lf %ld", &operation, &x, &y, &n);
+
+			fprintf(out, "%c %lf %lf %ld\n", operation, x, y, n);
+
 			if (n > nrecharge) {
 				printf("Número de pontos de recarga solicitados maior que o número de pontos de recarga disponíveis.\n");
 				break;
@@ -247,8 +261,8 @@ void read_commands(const char* filename)
 			// print the n nearest recharging locations
 			QuadTreeNode aux;
 			for (int i = 0; i < n; i++) {
-				printrecharge(result[i].addr);
-				printf(" (%f)\n", result[i].dist);
+				printrecharge(result[i].addr, out);
+				fprintf(out, "(%.3f)\n", result[i].dist);
 			}
 			printmap(result,n,nrecharge,x,y);
 			free(result);
@@ -265,10 +279,10 @@ int main(int argc, char** argv)
 	struct timespec inittp, endtp, restp;
     int retp;
 	
-	load_recharge_stations("./files/estacoes.csv");
+	load_recharge_stations("./files/geracarga.base");
 
 	retp = clock_gettime(CLOCK_MONOTONIC, &inittp);
-	read_commands("./files/comandos.txt");
+	read_commands("./files/geracarga.ev");
 	retp = clock_gettime(CLOCK_MONOTONIC, &endtp);
 	clkDiff(inittp, endtp, &restp);
 
