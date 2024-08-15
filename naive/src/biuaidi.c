@@ -6,14 +6,22 @@
 //    1.1 - 07/08/2024
 //	  2.0 - 15/08/2024	
 //
-// Usage: 
-// biuaidinaive x y
-//    x - geographical x coordinate of current location
-//    y - geographical y coordinate of current location
+// Uso: 
+// biuaidi
 // 
-// Output:
-//    10 closest recharging locations
-//
+// O programa lê os pontos de recarga a partir do arquivo "geracarga.base" 
+// e os comandos a partir do arquivo "geracarga.ev".
+// 
+// Comandos no arquivo "geracarga.ev":
+//    A <id> - Ativar ponto de recarga com o identificador <id>
+//    D <id> - Desativar ponto de recarga com o identificador <id>
+//    C <x> <y> <n> - Encontrar os <n> pontos de recarga mais próximos das 
+//    coordenadas <x> e <y>
+// 
+// Saída:
+//    Resultados dos comandos executados, incluindo a ativação/desativação de 
+//	  pontos de recarga e a lista dos pontos de recarga mais próximos com suas 
+//    distâncias.
 
 #include <stdio.h>
 #include <stdlib.h>
