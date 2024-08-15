@@ -7,9 +7,10 @@
 #include <stdbool.h>
 #include "qnode.h"
 
+// Estrutura que representa um vizinho na busca k-NN (k-nearest neighbors)
 typedef struct {
-    nodeaddr_t addr;
-    double dist;
+    nodeaddr_t addr; // Endereço do nó na QuadTree
+    double dist;     // Distância do nó até o ponto de referência
 } Neighbor;
 
 // Max heap.

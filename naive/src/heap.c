@@ -76,7 +76,7 @@ void heap_push(Heap* h, Neighbor x)
         atual = ancestral;
         ancestral = get_ancestor(atual);
     }
-    h->size++; // Incrementa o size do heap
+    h->size++; // Incrementa o tamanho do heap
 }
 
 Neighbor heap_pop(Heap* h)
@@ -86,9 +86,9 @@ Neighbor heap_pop(Heap* h)
         printf("\nErro. Impossivel remover elemento de um heap vazio.\n");
         exit(1);
     }
-    // Guarda uma copia da aresta a ser retirada (raiz)
+    // Guarda uma copia do vizinho a ser retirado (raiz)
     Neighbor ret = h->neighbors[0];
-    // Atribui a aresta da ultima posicao do vetor a raiz e diminiu o size do heap
+    // Atribui o vizinho da ultima posicao do vetor a raiz e diminiu o size do heap
     h->neighbors[0] = h->neighbors[h->size - 1];
     h->size--;
     // Inicia a iteracao na nova raiz
@@ -102,6 +102,6 @@ Neighbor heap_pop(Heap* h)
 
         maior_sucessor = get_max_sucessor(h, atual);
     }
-    // Retorna a aresta retirada
+    // Retorna o vizinho retirado
     return ret;
 }
