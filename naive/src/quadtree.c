@@ -9,7 +9,7 @@ static int cmpknn(const void* a, const void* b);
 static void subdivide(nodeaddr_t ad);
 static void quadtree_insert_rec(nodekey_t key, nodeaddr_t curr);
 static nodeaddr_t quadtree_search_rec(nodeaddr_t curr, char* idend, double x, double y);
-static void quadtree_k_nearest_rec(nodeaddr_t curr, double x, double y, long k, Heap* heap);
+static void quadtree_knn_rec(nodeaddr_t curr, double x, double y, long k, Heap* heap);
 
 // Create a binary tree with at most numnodes nodes
 void quadtree_create(long numnodes, Boundary qt_boundary) {
@@ -163,7 +163,7 @@ static bool check_overlap(nodeaddr_t addr, Boundary* bd)
 	return true;
 }
 
-static void quadtree_k_nearest_rec(nodeaddr_t curr, double x, double y, long k, Heap* heap)
+static void quadtree_knn_rec(nodeaddr_t curr, double x, double y, long k, Heap* heap)
 {	
 	if (curr == INVALIDADDR) {
 		return;
@@ -190,25 +190,25 @@ static void quadtree_k_nearest_rec(nodeaddr_t curr, double x, double y, long k, 
 	if (curr_node.nw != INVALIDADDR) {
 		node_get(curr_node.nw, &aux);
 		if (heap->size < k || can_contain_closer_point(&aux.boundary, x, y, heap->neighbors[0].dist)) {
-			quadtree_k_nearest_rec(curr_node.nw, x, y, k, heap);
+			quadtree_knn_rec(curr_node.nw, x, y, k, heap);
 		}
 	}
 	if (curr_node.ne != INVALIDADDR) {
 		node_get(curr_node.ne, &aux);
 		if (heap->size < k || can_contain_closer_point(&aux.boundary, x, y, heap->neighbors[0].dist)) {
-			quadtree_k_nearest_rec(curr_node.ne, x, y, k, heap);
+			quadtree_knn_rec(curr_node.ne, x, y, k, heap);
 		}
 	}
 	if (curr_node.sw != INVALIDADDR) {
 		node_get(curr_node.sw, &aux);
 		if (heap->size < k || can_contain_closer_point(&aux.boundary, x, y, heap->neighbors[0].dist)) {
-			quadtree_k_nearest_rec(curr_node.sw, x, y, k, heap);
+			quadtree_knn_rec(curr_node.sw, x, y, k, heap);
 		}
 	}
 	if (curr_node.se != INVALIDADDR) {
 		node_get(curr_node.se, &aux);
 		if (heap->size < k || can_contain_closer_point(&aux.boundary, x, y, heap->neighbors[0].dist)) {
-			quadtree_k_nearest_rec(curr_node.se, x, y, k, heap);
+			quadtree_knn_rec(curr_node.se, x, y, k, heap);
 		}
 	}
 }
@@ -221,7 +221,7 @@ static int cmpknn(const void* a, const void* b) {
 	else return 0;
 }
 
-void quadtree_k_nearest(double x, double y, long k, Neighbor* result)
+void quadtree_knn(double x, double y, long k, Neighbor* result)
 {
 	// check whether the tree is null
 	if (root == INVALIDADDR) {
@@ -230,7 +230,7 @@ void quadtree_k_nearest(double x, double y, long k, Neighbor* result)
 	}
 	Heap* heap = heap_initialize(k);
 	// call the recursive function
-	quadtree_k_nearest_rec(root, x, y, k, heap);
+	quadtree_knn_rec(root, x, y, k, heap);
 
 	qsort(heap->neighbors, k, sizeof(Neighbor), cmpknn);
 	

@@ -306,7 +306,7 @@ void closest_recharge_stations(double x, double y, long n)
     Neighbor result[n];
     
     // Encontra os n pontos de recarga mais próximos usando a quadtree
-    quadtree_k_nearest(x, y, n, result);
+    quadtree_knn(x, y, n, result);
     
     // Imprime os n pontos de recarga mais próximos
     QuadTreeNode aux;
