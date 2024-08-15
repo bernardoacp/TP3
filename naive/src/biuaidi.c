@@ -1,8 +1,10 @@
-// biuaidinaive
-// Author: Wagner Meira Jr. 
+// biuaidi
+// Authors: Wagner Meira Jr. 
+//		    Bernardo Alves Costa Pereira	
 // Version history:
 //    1.0 - 21/07/2024
 //    1.1 - 07/08/2024
+//	  2.0 - 15/08/2024	
 //
 // Usage: 
 // biuaidinaive x y
@@ -338,6 +340,8 @@ int main(int argc, char** argv)
 {	
 	load_recharge_stations("geracarga.base");
 	read_commands("geracarga.ev");
+
+	quadtree_destroy();
 
 	return 0;
 }
