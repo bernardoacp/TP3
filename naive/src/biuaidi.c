@@ -27,29 +27,6 @@
 
 int nrecharge = 0;
 
-typedef struct {
-	char* idend;
-	double x;
-	double y;
-} Consulta;
-
-Consulta* vet;
-
-void clkDiff(struct timespec t1, struct timespec t2, struct timespec * res) {
-    // Descricao: calcula a diferenca entre t2 e t1, que e armazenada em res
-    // Entrada: t1, t2
-    // Saida: res
-    if (t2.tv_nsec < t1.tv_nsec){
-        // ajuste necessario, utilizando um segundo de tv_sec
-        res->tv_nsec = 1000000000 + t2.tv_nsec - t1.tv_nsec;
-        res->tv_sec = t2.tv_sec - t1.tv_sec - 1;
-    } else {
-        // nao e necessario ajuste
-        res->tv_nsec = t2.tv_nsec - t1.tv_nsec;
-        res->tv_sec = t2.tv_sec - t1.tv_sec;
-    }
-}
-
 // print the recharge location information
 void printrecharge(int pos) {
 	QuadTreeNode aux;
@@ -115,6 +92,14 @@ void printmap(Neighbor* kvet, int kmax, int nrec, double tx, double ty) {
 	fclose(out1);
 }
 
+typedef struct {
+	char* idend;
+	double x;
+	double y;
+} Consulta;
+
+Consulta* vet;
+
 Consulta* bin_search(char* idend, Consulta* vet, int n) {
 	int l = 0, r = n - 1;
 	while (l <= r) {
@@ -132,7 +117,7 @@ Consulta* bin_search(char* idend, Consulta* vet, int n) {
 	return NULL;
 }
 
-int cmpknn(const void* a, const void* b) {
+int cmp_idend(const void* a, const void* b) {
 	Consulta* k1 = (Consulta*) a;
 	Consulta* k2 = (Consulta*) b;
 	if (strcmp(k1->idend, k2->idend) > 0) return 1;
@@ -212,7 +197,72 @@ void load_recharge_stations(const char* filename)
 	}
 	fclose(file);
 
-	qsort(vet, nrecharge, sizeof(Consulta), cmpknn);
+	qsort(vet, nrecharge, sizeof(Consulta), cmp_idend);
+}
+
+void activate_recharge_station(char* id) 
+{
+	Consulta* query = bin_search(id, vet, nrecharge);
+	if (query == NULL) {
+		fprintf(stderr, "Ponto de recarga %s não encontrado.\n", id);
+		return;
+	}
+	
+	nodeaddr_t addr = quadtree_search(id, query->x, query->y);
+	if (addr == INVALIDADDR) {
+		fprintf(stderr, "Ponto de recarga %s não encontrado.\n", id);
+		return;
+	}
+
+	QuadTreeNode node;
+	node_get(addr, &node);
+	if (node.key.ativo) {
+		printf("Ponto de recarga %s já estava ativo.\n", id);
+		return;
+	}
+	node.key.ativo = true;
+	node_put(addr, &node);
+	printf("Ponto de recarga %s ativado.\n", id);
+}
+
+void deactivate_recharge_station(char* id) 
+{
+	Consulta* query = bin_search(id, vet, nrecharge);
+	if (query == NULL) {
+		fprintf(stderr, "Ponto de recarga %s não encontrado.\n", id);
+		return;
+	}
+	
+	nodeaddr_t addr = quadtree_search(id, query->x, query->y);
+	if (addr == INVALIDADDR) {
+		fprintf(stderr, "Ponto de recarga %s não encontrado.\n", id);
+		return;
+	}
+
+	QuadTreeNode node;
+	node_get(addr, &node);
+	if (!node.key.ativo) {
+		printf("Ponto de recarga %s já estava desativado.\n", id);
+		return;
+	}
+	node.key.ativo = false;
+	node_put(addr, &node);
+	printf("Ponto de recarga %s desativado.\n", id);
+}
+
+void closest_recharge_stations(double x, double y, long n) 
+{
+	Neighbor result[n];
+	
+	quadtree_k_nearest(x, y, n, result);
+	
+	// print the n nearest recharging locations
+	QuadTreeNode aux;
+	for (int i = 0; i < n; i++) {
+		printrecharge(result[i].addr);
+		printf(" (%.3f)\n", result[i].dist);
+	}
+	//printmap(result,n,nrecharge,x,y);
 }
 
 void read_commands(const char* filename) 
@@ -243,91 +293,38 @@ void read_commands(const char* filename)
 
 		char operation;
 		char id[20];
-		Neighbor* result;
-		Consulta* query;
 
 		double x, y;
 		long n;
-		nodeaddr_t addr;
 		
 		switch (buffer[0]) {
 		case 'A':
 			// activate recharge station
 			sscanf(buffer, "%c %s", &operation, id);
-			
 			printf("%c %s\n", operation, id);
 
-			query = bin_search(id, vet, nrecharge);
+			activate_recharge_station(id);
 			
-			addr = quadtree_search(id, query->x, query->y);
-			
-			if (addr == INVALIDADDR) {
-				printf("Ponto de recarga %s não encontrado.\n", id);
-			}
-			else {
-				QuadTreeNode node;
-				node_get(addr, &node);
-				if (node.key.ativo) {
-					printf("Ponto de recarga %s já estava ativo.\n", id);
-				}
-				else {
-					node.key.ativo = true;
-					node_put(addr, &node);
-					printf("Ponto de recarga %s ativado.\n", id);
-				}
-			}
 			break;
 		case 'D':
 			// deactivate recharge station
 			sscanf(buffer, "%c %s", &operation, id);
-
 			printf("%c %s\n", operation, id);
 
-			query = bin_search(id, vet, nrecharge);
-
-			addr = quadtree_search(id, query->x, query->y);
+			deactivate_recharge_station(id);
 			
-			if (addr == INVALIDADDR) {
-				printf("Ponto de recarga %s não encontrado.\n", id);
-			}
-			else {
-				QuadTreeNode node;
-				node_get(addr, &node);
-				if (!node.key.ativo) {
-					printf("Ponto de recarga %s já estava desativado.\n", id);
-				}
-				else {
-					node.key.ativo = false;
-					node_put(addr, &node);
-					printf("Ponto de recarga %s desativado.\n", id);
-				}
-			}
 			break;
 		case 'C':
 			// find n closest recharge stations
 			sscanf(buffer, "%c %lf %lf %ld", &operation, &x, &y, &n);
-
 			printf("%c %lf %lf %ld\n", operation, x, y, n);
 
 			if (n > nrecharge) {
 				fprintf(stderr, "Número de pontos de recarga solicitados maior que o número de pontos de recarga disponíveis.\n");
 				break;
 			}
-			result = malloc(n * sizeof(Neighbor));
-			if (result == NULL) {
-				fprintf(stderr, "Erro ao alocar memória.\n");
-				break;
-			}
-			quadtree_k_nearest(x, y, n, result);
+			closest_recharge_stations(x, y, n);
 			
-			// print the n nearest recharging locations
-			QuadTreeNode aux;
-			for (int i = 0; i < n; i++) {
-				printrecharge(result[i].addr);
-				printf(" (%.3f)\n", result[i].dist);
-			}
-			//printmap(result,n,nrecharge,x,y);
-			free(result);
 			break;
 		default:
 			fprintf(stderr, "Comando inválido.\n");
