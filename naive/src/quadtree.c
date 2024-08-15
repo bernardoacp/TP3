@@ -13,7 +13,7 @@ static nodeaddr_t quadtree_search_rec(nodeaddr_t curr, char* idend, double x, do
 static void quadtree_knn_rec(nodeaddr_t curr, double x, double y, long k, Heap* heap);
 
 void quadtree_create(long numnodes, Boundary qt_boundary) {
-    // Inicializa o vetor que conterá a quadtree
+    // Inicializa o vetor da quadtree
     node_initialize(numnodes, qt_boundary);
 }
 
