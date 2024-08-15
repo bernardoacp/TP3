@@ -124,7 +124,8 @@ void quadtree_insert(nodekey_t key)
     numpoints++; // Incrementa o número de pontos na quadtree
 }
 
-// Função auxiliar recursiva para buscar um nó na quadtree pelo identificador e coordenadas (x, y)
+// Função auxiliar recursiva para buscar um nó na quadtree pelo identificador e 
+// coordenadas (x, y)
 static nodeaddr_t quadtree_search_rec(nodeaddr_t curr, char* idend, double x, double y)
 {
     QuadTreeNode curr_node;
@@ -142,7 +143,8 @@ static nodeaddr_t quadtree_search_rec(nodeaddr_t curr, char* idend, double x, do
     }
 
     QuadTreeNode aux;
-    // Verifica em qual quadrante o ponto (x, y) está contido e chama a função recursivamente
+    // Verifica em qual quadrante o ponto (x, y) está contido e chama a função 
+    // recursivamente
     node_get(curr_node.nw, &aux);
     if (boundary_contains(&aux.boundary, x, y)) {
         return quadtree_search_rec(curr_node.nw, idend, x, y);
@@ -203,39 +205,45 @@ static void quadtree_knn_rec(nodeaddr_t curr, double x, double y, long k, Heap* 
     // Calcula a distância euclidiana entre o ponto (x, y) e o nó atual
     double dist = euclidean_dist(x, y, curr_node.key.x, curr_node.key.y);
     
-    // Se o heap ainda não estiver cheio e o nó atual estiver ativo, adiciona o nó ao heap
+    // Se o heap ainda não estiver cheio e o nó atual estiver ativo, adiciona o 
+    // nó ao heap
     if (heap->size < k && curr_node.key.ativo) {
         heap_push(heap, (Neighbor) {curr, dist});
     }
-    // Se a distância do nó atual for menor que a maior distância no heap e o nó atual estiver ativo, substitui o nó no heap
+    // Se a distância do nó atual for menor que a maior distância no heap e o 
+    // nó atual estiver ativo, substitui o nó no heap
     else if (dist < heap->neighbors[0].dist && curr_node.key.ativo) {
         heap_pop(heap);
         heap_push(heap, (Neighbor) {curr, dist});
     }
 
     QuadTreeNode aux;
-    // Verifica se o quadrante noroeste pode conter um ponto mais próximo e chama a função recursivamente
+    // Verifica se o quadrante noroeste pode conter um ponto mais próximo e 
+    // chama a função recursivamente
     if (curr_node.nw != INVALIDADDR) {
         node_get(curr_node.nw, &aux);
         if (heap->size < k || can_contain_closer_point(&aux.boundary, x, y, heap->neighbors[0].dist)) {
             quadtree_knn_rec(curr_node.nw, x, y, k, heap);
         }
     }
-    // Verifica se o quadrante nordeste pode conter um ponto mais próximo e chama a função recursivamente
+    // Verifica se o quadrante nordeste pode conter um ponto mais próximo e 
+    // chama a função recursivamente
     if (curr_node.ne != INVALIDADDR) {
         node_get(curr_node.ne, &aux);
         if (heap->size < k || can_contain_closer_point(&aux.boundary, x, y, heap->neighbors[0].dist)) {
             quadtree_knn_rec(curr_node.ne, x, y, k, heap);
         }
     }
-    // Verifica se o quadrante sudoeste pode conter um ponto mais próximo e chama a função recursivamente
+    // Verifica se o quadrante sudoeste pode conter um ponto mais próximo e 
+    // chama a função recursivamente
     if (curr_node.sw != INVALIDADDR) {
         node_get(curr_node.sw, &aux);
         if (heap->size < k || can_contain_closer_point(&aux.boundary, x, y, heap->neighbors[0].dist)) {
             quadtree_knn_rec(curr_node.sw, x, y, k, heap);
         }
     }
-    // Verifica se o quadrante sudeste pode conter um ponto mais próximo e chama a função recursivamente
+    // Verifica se o quadrante sudeste pode conter um ponto mais próximo e 
+    // chama a função recursivamente
     if (curr_node.se != INVALIDADDR) {
         node_get(curr_node.se, &aux);
         if (heap->size < k || can_contain_closer_point(&aux.boundary, x, y, heap->neighbors[0].dist)) {
@@ -263,7 +271,8 @@ void quadtree_knn(double x, double y, long k, Neighbor* result)
     }
     // Inicializa um heap para armazenar os k vizinhos mais próximos
     Heap* heap = heap_initialize(k);
-    // Chama a função recursiva para encontrar os k vizinhos mais próximos a partir da raiz
+    // Chama a função recursiva para encontrar os k vizinhos mais próximos a 
+    // partir da raiz
     quadtree_knn_rec(root, x, y, k, heap);
 
     // Ordena os vizinhos encontrados pela distância

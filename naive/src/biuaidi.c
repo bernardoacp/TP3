@@ -106,7 +106,8 @@ void printmap(Neighbor* kvet, int kmax, int nrec, double tx, double ty) {
 	fclose(out1);
 }
 
-// Estrutura para armazenar informações de consulta - para ativação e desativação de pontos de recarga
+// Estrutura para armazenar informações de consulta - para ativação e
+// desativação de pontos de recarga
 typedef struct {
 	char* idend;
 	double x;
@@ -115,7 +116,8 @@ typedef struct {
 
 Consulta* vet;
 
-// Função de busca binária para encontrar um ponto de recarga pelo ID, de modo a permitir a busca na quadtree pelas coordenadas
+// Função de busca binária para encontrar um ponto de recarga pelo ID, de modo 
+// a permitir a busca na quadtree pelas coordenadas
 Consulta* bin_search(char* idend, Consulta* vet, int n) {
 	int l = 0, r = n - 1;
 	while (l <= r) {
@@ -148,7 +150,8 @@ void load_recharge_stations(const char* filename)
     // Abre o arquivo para leitura
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
-        // Se o arquivo não puder ser aberto, imprime uma mensagem de erro e encerra o programa
+        // Se o arquivo não puder ser aberto, imprime uma mensagem de erro e 
+        // encerra o programa
         fprintf(stderr, "Erro: nao foi possivel abrir o arquivo %s\n", filename);
         exit(1);
     }
@@ -156,7 +159,8 @@ void load_recharge_stations(const char* filename)
     // Lê o arquivo e popula a quadtree
     char buffer[1024];
     if (fgets(buffer, sizeof(buffer), file) == NULL) {
-        // Se não for possível ler o número de pontos de recarga, imprime uma mensagem de erro e encerra o programa
+        // Se não for possível ler o número de pontos de recarga, imprime uma 
+        // mensagem de erro e encerra o programa
         fprintf(stderr, "Erro: nao foi possivel ler o numero de pontos de recarga\n");
         fclose(file);      
         exit(1);
@@ -176,7 +180,8 @@ void load_recharge_stations(const char* filename)
     Item aux;
     for (int i = 0; i < nrecharge; i++) {
         if (fgets(buffer, sizeof(buffer), file) == NULL) {
-            // Se não for possível ler um ponto de recarga, imprime uma mensagem de erro e encerra o programa
+            // Se não for possível ler um ponto de recarga, imprime uma 
+            // mensagem de erro e encerra o programa
             fprintf(stderr, "Erro: nao foi possivel ler o ponto de recarga %d\n", i);
             fclose(file);
             exit(1);
@@ -237,7 +242,8 @@ void activate_recharge_station(char* id)
     // Busca binária para encontrar o ponto de recarga pelo ID
     Consulta* query = bin_search(id, vet, nrecharge);
     if (query == NULL) {
-        // Se o ponto de recarga não for encontrado, imprime uma mensagem de erro e retorna
+        // Se o ponto de recarga não for encontrado, imprime uma mensagem de 
+        // erro e retorna
         fprintf(stderr, "Ponto de recarga %s não encontrado.\n", id);
         return;
     }
@@ -245,7 +251,8 @@ void activate_recharge_station(char* id)
     // Busca na quadtree pelo endereço do ponto de recarga
     nodeaddr_t addr = quadtree_search(id, query->x, query->y);
     if (addr == INVALIDADDR) {
-        // Se o endereço não for encontrado, imprime uma mensagem de erro e retorna
+        // Se o endereço não for encontrado, imprime uma mensagem de erro e 
+        // retorna
         fprintf(stderr, "Ponto de recarga %s não encontrado.\n", id);
         return;
     }
@@ -254,7 +261,8 @@ void activate_recharge_station(char* id)
     // Recupera o nó da quadtree
     node_get(addr, &node);
     if (node.key.ativo) {
-        // Se o ponto de recarga já estiver ativo, imprime uma mensagem e retorna
+        // Se o ponto de recarga já estiver ativo, imprime uma mensagem e
+        // retorna
         printf("Ponto de recarga %s já estava ativo.\n", id);
         return;
     }
@@ -271,7 +279,8 @@ void deactivate_recharge_station(char* id)
     // Busca binária para encontrar o ponto de recarga pelo ID
     Consulta* query = bin_search(id, vet, nrecharge);
     if (query == NULL) {
-        // Se o ponto de recarga não for encontrado, imprime uma mensagem de erro e retorna
+        // Se o ponto de recarga não for encontrado, imprime uma mensagem de 
+        // erro e retorna
         fprintf(stderr, "Ponto de recarga %s não encontrado.\n", id);
         return;
     }
@@ -279,7 +288,8 @@ void deactivate_recharge_station(char* id)
     // Busca na quadtree pelo endereço do ponto de recarga
     nodeaddr_t addr = quadtree_search(id, query->x, query->y);
     if (addr == INVALIDADDR) {
-        // Se o endereço não for encontrado, imprime uma mensagem de erro e retorna
+        // Se o endereço não for encontrado, imprime uma mensagem de erro e
+        // retorna
         fprintf(stderr, "Ponto de recarga %s não encontrado.\n", id);
         return;
     }
@@ -288,7 +298,8 @@ void deactivate_recharge_station(char* id)
     // Recupera o nó da quadtree
     node_get(addr, &node);
     if (!node.key.ativo) {
-        // Se o ponto de recarga já estiver desativado, imprime uma mensagem e retorna
+        // Se o ponto de recarga já estiver desativado, imprime uma mensagem e
+        // retorna
         printf("Ponto de recarga %s já estava desativado.\n", id);
         return;
     }
@@ -322,7 +333,8 @@ void read_commands(const char* filename)
     // Abre o arquivo para leitura
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
-        // Se o arquivo não puder ser aberto, imprime uma mensagem de erro e encerra o programa
+        // Se o arquivo não puder ser aberto, imprime uma mensagem de erro e 
+        // encerra o programa
         fprintf(stderr, "Erro: nao foi possivel abrir o arquivo %s\n", filename);
         exit(1);
     }
@@ -330,7 +342,8 @@ void read_commands(const char* filename)
     char buffer[1024];
     // Lê a primeira linha do arquivo para obter o número de comandos
     if (fgets(buffer, sizeof(buffer), file) == NULL) {
-        // Se não for possível ler o número de comandos, imprime uma mensagem de erro e encerra o programa
+        // Se não for possível ler o número de comandos, imprime uma mensagem
+        // de erro e encerra o programa
         fprintf(stderr, "Erro: nao foi possivel ler o numero de comandos\n");
         fclose(file);
         exit(1);
@@ -343,7 +356,8 @@ void read_commands(const char* filename)
     for (int i = 0; i <= num_commands; i++) {
         // Lê a linha do comando
         if (fgets(buffer, sizeof(buffer), file) == NULL) {
-            // Se não for possível ler o comando, imprime uma mensagem de erro e encerra o programa
+            // Se não for possível ler o comando, imprime uma mensagem de erro 
+            // e encerra o programa
             fprintf(stderr, "Erro: nao foi possivel ler o comando %d\n", i);
             fclose(file);
             exit(1);
@@ -382,7 +396,8 @@ void read_commands(const char* filename)
             sscanf(buffer, "%c %lf %lf %ld", &operation, &x, &y, &n);
             printf("%c %lf %lf %ld\n", operation, x, y, n);
 
-            // Verifica se o número de pontos de recarga solicitados é maior que o disponível
+            // Verifica se o número de pontos de recarga solicitados é maior
+            // que o disponível
             if (n > nrecharge) {
                 fprintf(stderr, "Número de pontos de recarga solicitados maior que o número de pontos de recarga disponíveis.\n");
                 break;
