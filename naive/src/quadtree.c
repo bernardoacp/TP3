@@ -9,8 +9,6 @@ static int cmpknn(const void* a, const void* b);
 static void subdivide(nodeaddr_t ad);
 static void quadtree_insert_rec(nodekey_t key, nodeaddr_t curr);
 static nodeaddr_t quadtree_search_rec(nodeaddr_t curr, char* idend, double x, double y);
-static double min_distance_to_boundary(double x, double y, Boundary* boundary) ;
-static bool can_contain_closer_point(Boundary* boundary, double x, double y, double max_dist);
 static void quadtree_k_nearest_rec(nodeaddr_t curr, double x, double y, long k, Heap* heap);
 
 // Create a binary tree with at most numnodes nodes
@@ -60,20 +58,7 @@ static void subdivide(nodeaddr_t ad)
 	aux.boundary = se;
 	curr.se = node_create(&aux);
 
-	// Push down the point from the parent node to one of the children
-    //nodekey_t key = curr.key;
-    //curr.key = INVALIDKEY;
     node_put(ad, &curr);
-
-    // Debugging statements to check the state of the nodes
-    // printf("Subdivided node at address %ld\n", ad);
-    // printf("NW child at address %ld\n", curr.nw);
-    // printf("NE child at address %ld\n", curr.ne);
-    // printf("SW child at address %ld\n", curr.sw);
-    // printf("SE child at address %ld\n", curr.se);
-
-    // Reinsert the point into the appropriate child node
-    //quadtree_insert_rec(key, ad);
 }
 
 static void quadtree_insert_rec(nodekey_t key, nodeaddr_t curr)
@@ -176,17 +161,6 @@ static bool check_overlap(nodeaddr_t addr, Boundary* bd)
 		return false;
 	}
 	return true;
-}
-
-static double min_distance_to_boundary(double x, double y, Boundary* boundary) {
-    double dx = fmax(fmax(boundary->x_min - x, 0), x - boundary->x_max);
-    double dy = fmax(fmax(boundary->y_min - y, 0), y - boundary->y_max);
-    return sqrt(dx * dx + dy * dy);
-}
-
-static bool can_contain_closer_point(Boundary* boundary, double x, double y, double max_dist) {
-    double min_dist = min_distance_to_boundary(x, y, boundary);
-    return min_dist < max_dist;
 }
 
 static void quadtree_k_nearest_rec(nodeaddr_t curr, double x, double y, long k, Heap* heap)
