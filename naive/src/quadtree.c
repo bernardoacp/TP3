@@ -252,7 +252,7 @@ static void quadtree_knn_rec(nodeaddr_t curr, double x, double y, long k, Heap* 
     }
 }
 
-// Função de comparação para o k-NN (k-nearest neighbors)
+// Função de comparação para o KNN
 static int cmpknn(const void* a, const void* b) {
     Neighbor* k1 = (Neighbor*) a;
     Neighbor* k2 = (Neighbor*) b;
