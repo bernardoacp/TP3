@@ -157,7 +157,7 @@ void load_recharge_stations(const char* filename)
 	buffer[strcspn(buffer, "\n")] = 0;
 	sscanf(buffer, "%d", &nrecharge);
 
-	quadtree_create(nrecharge, (Boundary) {598017.313632323, 619122.989979841, 7785041.75619417, 7812836.09085508});
+	quadtree_create(4 * nrecharge - 1, (Boundary) {598017.313632323, 619122.989979841, 7785041.75619417, 7812836.09085508});
 	vet = malloc(nrecharge * sizeof(Consulta));
 
 	Item aux;
