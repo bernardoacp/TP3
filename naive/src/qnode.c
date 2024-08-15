@@ -57,7 +57,7 @@ long node_initialize(long numnodes, Boundary qt_boundary) {
 	firstavail = (nodeaddr_t) 0;
 	return numnodes;
 }
-
+/*
 void reallocate_node_array() {
     int new_size = nodevetsz * 2;
     QuadTreeNode* new_nodevet = realloc(nodevet, new_size * sizeof(QuadTreeNode));
@@ -77,14 +77,15 @@ void reallocate_node_array() {
 	firstavail = (nodeaddr_t) nodevetsz;
     nodevetsz = new_size;
 }
+*/
 
 // create node from pn
 nodeaddr_t node_create(QuadTreeNode* pn) {
 	nodeaddr_t ret;
 	// check whether node vector is full
-	if (nodesallocated == nodevetsz) {
-		reallocate_node_array();
-	}
+	//if (nodesallocated == nodevetsz) {
+	//	reallocate_node_array();
+	//}
 	// remove a node from the avail chain, update the controls and copy pn to it
 	ret = firstavail;
 	firstavail = nodevet[ret].nw;
