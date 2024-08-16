@@ -82,8 +82,8 @@ static void quadtree_insert_rec(nodekey_t key, nodeaddr_t curr)
         return; // Se não estiver, retorna 
     }
 
-    // Verifica se o nó atual está vazio e não subdividido
-    if (curr_node.key.idend == NULL && curr_node.nw == INVALIDADDR) {
+    // Verifica se o nó atual está vazio 
+    if (curr_node.key.idend == NULL) {
         // Insere a chave no nó atual
         curr_node.key = key;
         node_put(curr, &curr_node);
