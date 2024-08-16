@@ -325,6 +325,7 @@ void closest_recharge_stations(double x, double y, long n)
         printrecharge(result[i].addr);
         printf(" (%.3f)\n", result[i].dist);
     }
+    printmap(result, n, nrecharge, x, y);
 }
 
 // Função para ler e executar comandos a partir de um arquivo
@@ -353,7 +354,7 @@ void read_commands(const char* filename)
     sscanf(buffer, "%d", &num_commands);
 
     // Itera sobre cada comando no arquivo
-    for (int i = 0; i <= num_commands; i++) {
+    for (int i = 0; i < num_commands; i++) {
         // Lê a linha do comando
         if (fgets(buffer, sizeof(buffer), file) == NULL) {
             // Se não for possível ler o comando, imprime uma mensagem de erro 

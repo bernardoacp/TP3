@@ -87,6 +87,7 @@ static void quadtree_insert_rec(nodekey_t key, nodeaddr_t curr)
         // Insere a chave no nó atual
         curr_node.key = key;
         node_put(curr, &curr_node);
+        numpoints++; // Incrementa o número de pontos na quadtree
         return;
     }
 
@@ -116,12 +117,12 @@ void quadtree_insert(nodekey_t key)
     if (root == INVALIDADDR) {
         root = node_create(&aux);
         node_put(root, &aux);
+        numpoints++; // Incrementa o número de pontos na quadtree
         return;
     }
 
     // Insere a chave na quadtree a partir da raiz
     quadtree_insert_rec(key, root);
-    numpoints++; // Incrementa o número de pontos na quadtree
 }
 
 // Função auxiliar recursiva para buscar um nó na quadtree pelo identificador e 
