@@ -7,7 +7,7 @@ long numpoints = 0; // Número de pontos na quadtree
 // Funções privadas
 static double euclidean_dist(double x1, double y1, double x2, double y2);
 static int cmpknn(const void* a, const void* b);
-static void subdivide(nodeaddr_t ad);
+static void quadtree_subdivide(nodeaddr_t ad);
 static void quadtree_insert_rec(nodekey_t key, nodeaddr_t curr);
 static nodeaddr_t quadtree_search_rec(nodeaddr_t curr, char* idend, double x, double y);
 static void quadtree_knn_rec(nodeaddr_t curr, double x, double y, long k, Heap* heap);
@@ -25,7 +25,7 @@ void quadtree_destroy() {
 }
 
 // Função auxiliar para subdividir um nó da quadtree em quatro quadrantes
-static void subdivide(nodeaddr_t ad)
+static void quadtree_subdivide(nodeaddr_t ad)
 {
     QuadTreeNode curr;
     // Recupera o nó atual da quadtree a partir do endereço fornecido
@@ -91,9 +91,9 @@ static void quadtree_insert_rec(nodekey_t key, nodeaddr_t curr)
         return;
     }
 
-    // Se o nó atual não estiver subdividido, subdivide-o
+    // Se o nó atual não estiver subdividido, quadtree_subdivide-o
     if (curr_node.nw == INVALIDADDR) {
-        subdivide(curr);
+        quadtree_subdivide(curr);
         // Atualiza o nó atual após a subdivisão
         node_get(curr, &curr_node);
     }

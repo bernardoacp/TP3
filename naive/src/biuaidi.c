@@ -38,7 +38,8 @@ int nrecharge = 0;
 
 // Função para imprimir as informações do ponto de recarga
 // Recebe a posição do nó na quadtree como argumento
-void printrecharge(int pos) {
+void printrecharge(int pos) 
+{
 	QuadTreeNode aux;
 	// Recupera as informações do nó na quadtree
 	node_get(pos, &aux);
@@ -52,7 +53,8 @@ void printrecharge(int pos) {
 // Função para imprimir um mapa ilustrativo usando gnuplot
 // Recebe um array de estruturas Neighbor, o número máximo de vizinhos (kmax),
 // o número de pontos de recarga (nrec) e as coordenadas (tx, ty) como argumentos
-void printmap(Neighbor* kvet, int kmax, int nrec, double tx, double ty) {
+void printmap(Neighbor* kvet, int kmax, int nrec, double tx, double ty) 
+{
 	FILE *out1, *out2;
 
 	// Exporta os dados da quadtree para um arquivo
@@ -112,13 +114,14 @@ typedef struct {
 	char* idend;
 	double x;
 	double y;
-} Consulta;
+} Query;
 
-Consulta* vet;
+Query* vet;
 
 // Função de busca binária para encontrar um ponto de recarga pelo ID, de modo 
 // a permitir a busca na quadtree pelas coordenadas
-Consulta* bin_search(char* idend, Consulta* vet, int n) {
+Query* bin_search(char* idend, Query* vet, int n) 
+{
 	int l = 0, r = n - 1;
 	while (l <= r) {
 		int m = l + (r - l) / 2;
@@ -136,9 +139,10 @@ Consulta* bin_search(char* idend, Consulta* vet, int n) {
 }
 
 // Função de comparação para ordenar pontos de recarga pelo ID
-int cmp_idend(const void* a, const void* b) {
-	Consulta* k1 = (Consulta*) a;
-	Consulta* k2 = (Consulta*) b;
+int cmp_idend(const void* a, const void* b) 
+{
+	Query* k1 = (Query*) a;
+	Query* k2 = (Query*) b;
 	if (strcmp(k1->idend, k2->idend) > 0) return 1;
 	else if (strcmp(k1->idend, k2->idend) < 0) return -1;
 	else return 0;
@@ -175,17 +179,11 @@ void load_recharge_stations(const char* filename)
 	// (extraidos do arquivo que contem os pontos de recarga em potencial)
     quadtree_create(4 * nrecharge - 1, (Boundary) {598017.313632323, 619122.989979841, 7785041.75619417, 7812836.09085508});
     // Aloca memória para o vetor de consultas
-    vet = malloc(nrecharge * sizeof(Consulta));
+    vet = malloc(nrecharge * sizeof(Query));
 
     Item aux;
-    for (int i = 0; i < nrecharge; i++) {
-        if (fgets(buffer, sizeof(buffer), file) == NULL) {
-            // Se não for possível ler um ponto de recarga, imprime uma 
-            // mensagem de erro e encerra o programa
-            fprintf(stderr, "Erro: nao foi possivel ler o ponto de recarga %d\n", i);
-            fclose(file);
-            exit(1);
-        }
+    int i = 0;
+    while (fgets(buffer, sizeof(buffer), file)) {
         // Remove o caractere de nova linha, se presente
         buffer[strcspn(buffer, "\n")] = 0;
 
@@ -228,19 +226,20 @@ void load_recharge_stations(const char* filename)
         
         // Insere o ponto de recarga na quadtree
         quadtree_insert(aux);
+        i++;
     }
     // Fecha o arquivo
     fclose(file);
 
     // Ordena o vetor de consultas pelo ID
-    qsort(vet, nrecharge, sizeof(Consulta), cmp_idend);
+    qsort(vet, nrecharge, sizeof(Query), cmp_idend);
 }
 
 // Função para ativar um ponto de recarga
 void activate_recharge_station(char* id) 
 {
     // Busca binária para encontrar o ponto de recarga pelo ID
-    Consulta* query = bin_search(id, vet, nrecharge);
+    Query* query = bin_search(id, vet, nrecharge);
     if (query == NULL) {
         // Se o ponto de recarga não for encontrado, imprime uma mensagem de 
         // erro e retorna
@@ -277,7 +276,7 @@ void activate_recharge_station(char* id)
 void deactivate_recharge_station(char* id) 
 {
     // Busca binária para encontrar o ponto de recarga pelo ID
-    Consulta* query = bin_search(id, vet, nrecharge);
+    Query* query = bin_search(id, vet, nrecharge);
     if (query == NULL) {
         // Se o ponto de recarga não for encontrado, imprime uma mensagem de 
         // erro e retorna
@@ -354,15 +353,7 @@ void read_commands(const char* filename)
     sscanf(buffer, "%d", &num_commands);
 
     // Itera sobre cada comando no arquivo
-    for (int i = 0; i < num_commands; i++) {
-        // Lê a linha do comando
-        if (fgets(buffer, sizeof(buffer), file) == NULL) {
-            // Se não for possível ler o comando, imprime uma mensagem de erro 
-            // e encerra o programa
-            fprintf(stderr, "Erro: nao foi possivel ler o comando %d\n", i);
-            fclose(file);
-            exit(1);
-        }
+    while (fgets(buffer, sizeof(buffer), file)) {
         // Remove o caractere de nova linha, se presente
         buffer[strcspn(buffer, "\n")] = 0;
 
@@ -417,12 +408,40 @@ void read_commands(const char* filename)
 
 int main(int argc, char** argv) 
 {	
-    // Carrega os pontos de recarga a partir do arquivo "geracarga.base"
-    load_recharge_stations("geracarga.base");
-    // Lê os comandos a partir do arquivo "geracarga.ev"
-    read_commands("geracarga.ev");
+    // Verifica se o número de argumentos é igual a 5
+    if (argc != 5) {
+        // Imprime mensagem de uso correto do programa
+        fprintf(stderr, "Uso: %s -b <arquivo_base> -e <arquivo_ev>\n", argv[0]);
+        return 1;
+    }
 
-    // Destroi a quadtree
+    char *base_file = NULL;
+    char *ev_file = NULL;
+
+    // Itera sobre os argumentos da linha de comando
+    for (int i = 1; i < argc; i++) {
+        // Verifica se o argumento é "-b" e armazena o próximo argumento como base_file
+        if (strcmp(argv[i], "-b") == 0) {
+            base_file = argv[++i];
+        // Verifica se o argumento é "-e" e armazena o próximo argumento como ev_file
+        } else if (strcmp(argv[i], "-e") == 0) {
+            ev_file = argv[++i];
+        }
+    }
+
+    // Verifica se os arquivos base_file e ev_file foram fornecidos
+    if (base_file == NULL || ev_file == NULL) {
+        // Imprime mensagem de uso correto do programa
+        fprintf(stderr, "Uso: %s -b <arquivo_base> -e <arquivo_ev>\n", argv[0]);
+        return 1;
+    }
+
+    // Carrega os pontos de recarga a partir do arquivo especificado por base_file
+    load_recharge_stations(base_file);
+    // Lê os comandos a partir do arquivo especificado por ev_file
+    read_commands(ev_file);
+
+    // Destroi a quadtree para liberar os recursos alocados
     quadtree_destroy();
 
     return 0;

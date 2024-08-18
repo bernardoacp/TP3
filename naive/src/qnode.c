@@ -115,34 +115,6 @@ void node_put(nodeaddr_t ad, QuadTreeNode* pn) {
     node_copy(&(nodevet[ad]), pn);
 }
 
-// Função para imprimir nodevet para fins de depuração
-void node_dump(int ad, int level) {
-    // Verifica se o endereço é válido
-    if (ad < 0 || ad >= nodevetsz) {
-        fprintf(stderr,"node_dump: address out of range\n");
-        return;
-    }
-    // Insere espaços de nível para fins de indentação
-    for (int i = 0; i < level; i++) printf(" ");
-    // Imprime as informações do nó
-    printf("(%f %f) key %ld nw %ld ne %ld sw %ld se\n",
-            nodevet[ad].key.x, nodevet[ad].key.y,
-            nodevet[ad].nw, nodevet[ad].ne, nodevet[ad].sw, nodevet[ad].se);
-}
-
-// Função para imprimir todo o vetor
-void node_dumpvet() {
-    // Informações gerais
-    printf("sz %ld alloc %ld 1stavail %ld\n",
-            nodevetsz, nodesallocated, firstavail);
-    // Imprime cada entrada do vetor
-    for (int i = 0; i < nodevetsz; i++) {
-        printf("(%f %f) key %ld nw %ld ne %ld sw %ld se\n",
-                nodevet[i].key.x, nodevet[i].key.y,
-                nodevet[i].nw, nodevet[i].ne, nodevet[i].sw, nodevet[i].se);
-    }
-}
-
 // Função para destruir o vetor de nós, liberando a memória alocada
 void node_destroy() {
     free(nodevet);
